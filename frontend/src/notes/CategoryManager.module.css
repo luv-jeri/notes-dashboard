@@ -1,0 +1,179 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: -0.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+@media (hover: hover) {
+  .close:hover {
+    background-color: color-mix(in srgb, var(--surface) 88%, var(--ink));
+  }
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-block: 0.625rem;
+  border-top: 1px solid var(--line);
+}
+
+.row:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+}
+
+/* The same circle as the filter pills, so a category looks the same everywhere. */
+.glyph {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--on-pastel);
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.nameInput {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  gap: 0.125rem;
+  margin-right: -0.5rem;
+}
+
+.action {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--ink-muted);
+  transition:
+    background-color var(--duration-quick) var(--ease-out),
+    color var(--duration-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .action:hover {
+    background-color: var(--hover);
+    color: var(--ink);
+  }
+}
+
+.action[aria-expanded='true'] {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+/* What opens under a row lines up with its name, past the circle. */
+.more {
+  padding-left: 3rem;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: open var(--duration-base) var(--ease-out);
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    translate: 0 -0.25rem;
+  }
+}
+
+.question {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.add {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subheading {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* Phones: what opens under a row uses the full width. */
+@media (max-width: 759px) {
+  .body {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+
+  .more {
+    padding-left: 0;
+  }
+}

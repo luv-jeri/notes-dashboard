@@ -56,24 +56,37 @@
   animation: card-in var(--duration-slow) var(--ease-out) both;
 }
 
-.card[data-category='work'] {
+/* One rule per colour: a person's own categories use the same eight. */
+.card[data-color='lilac'] {
   --tint: var(--lilac-strong);
 }
 
-.card[data-category='personal'] {
+.card[data-color='rose'] {
   --tint: var(--rose-strong);
 }
 
-.card[data-category='ideas'] {
+.card[data-color='peach'] {
   --tint: var(--peach-strong);
 }
 
-.card[data-category='shopping'] {
+.card[data-color='mint'] {
   --tint: var(--mint-strong);
 }
 
-.card[data-category='health'] {
+.card[data-color='sky'] {
   --tint: var(--sky-strong);
+}
+
+.card[data-color='butter'] {
+  --tint: var(--butter-strong);
+}
+
+.card[data-color='sage'] {
+  --tint: var(--sage-strong);
+}
+
+.card[data-color='stone'] {
+  --tint: var(--stone-strong);
 }
 
 /* Done notes are outlines, as they're quieter on the page too. */
@@ -114,6 +127,12 @@
   top: 0;
   left: -0.125rem;
   right: -0.125rem;
+  /* The script sets the height to exactly what's on screen. Padding and the
+     border sit outside that, as they do at the sides, so the frame never
+     lands on the last block when the list ends on screen. */
+  box-sizing: content-box;
+  margin-top: calc(-0.125rem - 1.5px);
+  padding-block: 0.125rem;
   border: 1.5px solid var(--ink);
   border-radius: 6px;
   background-color: color-mix(in srgb, var(--ink) 7%, transparent);

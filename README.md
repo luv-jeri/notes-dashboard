@@ -41,6 +41,11 @@ view has something in it. Accounts and notes are saved in a SQLite file,
 restarts only if `NOTES_JWT_SECRET` is set; without it the backend makes a new
 signing secret each time it starts, and you log in again.
 
+Locally, emails aren't sent. The confirmation and password reset emails are
+printed in the backend's terminal instead: open the link from there. To send
+real email, set `RESEND_API_KEY` (and `NOTES_EMAIL_FROM` for a verified
+sending domain).
+
 The Vite dev server forwards `/api/*` to port 8000, so the browser talks to a
 single origin and the backend needs no CORS setup. To use an API somewhere
 else, set `VITE_API_URL`.
@@ -74,15 +79,21 @@ The live demo runs on Vercel as one project with two
   the local Vite proxy.
 
 Accounts and notes are stored in Neon Postgres (free tier, added through
-Vercel's Neon integration). The backend needs two environment variables on
-Vercel and refuses to start without them:
+Vercel's Neon integration). Emails go through Resend (free tier). The backend
+needs four environment variables on Vercel and refuses to start without them:
 
 | Variable | What it is |
 | --- | --- |
 | `DATABASE_URL` (or `POSTGRES_URL`) | The Postgres connection string. The Neon integration sets it. |
 | `NOTES_JWT_SECRET` | The secret that signs session tokens. Any long random string, for example from `python3 -c "import secrets; print(secrets.token_urlsafe(48))"`. |
+| `RESEND_API_KEY` | Sends the confirmation and password reset emails. A Resend API key with sending access to your domain. |
+| `NOTES_APP_URL` | The site's address, for example `https://notes-dashboard-jade.vercel.app`. Links in emails are built from it, never from the request. |
 
-To deploy your own copy: add both variables to the Vercel project, then run
+Optional: `NOTES_EMAIL_FROM`, the sender, such as `Notes <notes@mail.example.com>`
+on a domain verified in Resend. Without a verified domain, Resend only
+delivers to the address that owns the Resend account.
+
+To deploy your own copy: add the variables to the Vercel project, then run
 `npx vercel@latest deploy --prod` from the repository root. Tables are
 created on first start.
 
@@ -110,10 +121,11 @@ created on first start.
   once. If the server refuses, the change rolls back and a toast says what
   failed, with "Try again". A just-ticked note offers "Undo". Offline, a
   save fails at once with "You're offline" instead of waiting silently.
-- **Tests.** 39 frontend tests with React Testing Library cover the card, the
-  sort dropdown, the whole app (accounts included) against a fake server, and
-  the pure logic. 90 backend tests cover the API, accounts and sessions, on
-  SQLite and on Postgres. See [Tests](#tests).
+- **Tests.** 62 frontend tests with React Testing Library cover the card, the
+  sort dropdown, the whole app (accounts, email links and your own categories
+  included) against a fake server, and the pure logic. 210 backend tests cover
+  the API, accounts, sessions, email links and categories, on SQLite and on
+  Postgres. See [Tests](#tests).
 - **React Native.** A short plan is below in
   [Adapting it to mobile](#adapting-it-to-mobile).
 
@@ -123,8 +135,13 @@ Added on top of the brief:
   person's notes are private to them. The session is a signed token (a JWT)
   in a cookie that page scripts can't read. A new account opens on an empty
   screen with "New note" and "Add sample notes". If a session ends while you
-  work, the app returns to the log-in screen and says why. Details and
-  decisions: [docs/auth.md](docs/auth.md).
+  work, the app returns to the log-in screen and says why.
+- Email confirmation and password reset by emailed link. Reset links last an
+  hour, work once, and log you out everywhere else. Details and decisions:
+  [docs/auth.md](docs/auth.md).
+- Your own categories beside the five built-in ones: a name and a pastel
+  colour, made from the note editor and renamed, recoloured or deleted from
+  "Edit categories". Deleting one moves its notes to Personal.
 - Categories, due dates (overdue and due-today states), pin to top, mark done
   and undo, with the server keeping the time a note was finished.
 - A side panel with today's progress, a chart of the last 7 days and the notes
@@ -207,8 +224,8 @@ How:
 ## Tests
 
 ```bash
-cd frontend && npm test            # 39 tests, about 5 seconds
-pytest backend/tests               # 90 tests, about 4 seconds
+cd frontend && npm test            # 62 tests, about 7 seconds
+pytest backend/tests               # 210 tests, about 20 seconds (4 of them need Postgres)
 ```
 
 | File | Covers |
@@ -216,8 +233,11 @@ pytest backend/tests               # 90 tests, about 4 seconds
 | `NoteCard.test.tsx` | The component test the brief asks for: title and preview, overdue wording, pin / done / open, and the delete confirmation (focus starts on "Keep", so pressing Enter twice can't delete) |
 | `Select.test.tsx` | The sort dropdown: pick with the mouse, then with the keyboard alone, Escape closes without changing anything, typing a letter jumps to an option, a press outside closes it |
 | `App.test.tsx` | The whole app against a fake server: loading, a failed load with "Try again", a new note shown before the server answers, search with no matches, done and Undo, a failed delete that rolls back and then succeeds on "Try again", an offline save that fails at once and keeps focus in the page. Accounts: log in, a wrong password, sign-up field checks, sign up to the empty screen and sample notes, an email that already has an account, the account menu and log out, and a session that ends mid-use |
+| `EmailLinks.test.tsx` | Forgot password keeps the typed email and waits a minute before Send again; a reset link sets the password, logs in and leaves the address bar; a used link offers a new one; a confirmation link is sent once even under React Strict Mode; the Confirm your email banner sends, explains a refusal and hides |
+| `customCategories.test.tsx` | Adding a category from the editor, renaming to a taken name, recolouring at once, deleting (its notes move to Personal), a note whose category is gone saving as Personal, and a note keeping its category while the list can't load |
+| `accountMutation.test.tsx` | A save that answers after someone else has logged in never lands in their notes or categories |
 | `selectNotes.test.ts`, `dates.test.ts`, `text.test.ts` | Sections, search, filters and sorting; date maths across month and year ends; preview cutting with emoji |
-| `backend/tests/test_api.py` | Ids, defaults, validation and limits, 304s, gzip, 404s, done time kept on edit and cleared on undo. Accounts: sign-up and log-in rules, hashed passwords, cookie flags, expired and tampered tokens, one user unable to see or change another's notes, and that passwords never come back in an error |
+| `backend/tests/test_api.py` | Ids, defaults, validation and limits, 304s, gzip, 404s, done time kept on edit and cleared on undo. Accounts: sign-up and log-in rules, hashed passwords, cookie flags, expired and tampered tokens, one user unable to see or change another's notes, and that passwords never come back in an error. Email links: hashed single-use tokens, expiry, rate limits, a reset ending other sessions, no lock held while an email sends, forgot password always answering 202. Categories: ownership, duplicate names in any case, the limit of 20, odd keys, deletion moving notes. Startup: the migration and the cold-start lock |
 
 ## Adapting it to mobile
 
@@ -253,9 +273,9 @@ backend/
   main.py              API, accounts and sessions, database, validation, ETag and gzip
   tests/test_api.py
 frontend/src/
-  api/                 fetch wrapper with readable errors, typed notes and auth APIs
-  auth/                log-in and sign-up screen, session hooks
-  notes/               dashboard, card, editor, scroll map, data hooks, pure logic
+  api/                 fetch wrapper with readable errors, typed notes, auth and category APIs
+  auth/                log-in, sign-up, forgot and reset screens, email links, confirm banner, session hooks
+  notes/               dashboard, card, editor, scroll map, your categories, data hooks, pure logic
   panel/               progress panel (folds to a strip) and week chart
   layout/              icon rail (widens to show names) / bottom tab bar
   ui/                  the custom sort dropdown

@@ -18,10 +18,15 @@ vi.mock('./api/auth', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./api/auth')>()),
   authApi: { me: vi.fn(), signup: vi.fn(), login: vi.fn(), logout: vi.fn() },
 }))
+// No categories of their own. src/notes/customCategories.test.tsx covers those.
+vi.mock('./api/categories', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./api/categories')>()),
+  categoriesApi: { list: vi.fn(async () => []), create: vi.fn(), update: vi.fn(), remove: vi.fn() },
+}))
 const api = vi.mocked(notesApi)
 const auth = vi.mocked(authApi)
 
-const ada: User = { id: 1, name: 'Ada Lovelace', email: 'ada@example.com' }
+const ada: User = { id: 1, name: 'Ada Lovelace', email: 'ada@example.com', email_verified: true }
 
 /** What the fake server holds. Each test starts it with a few notes. */
 let server: Note[] = []

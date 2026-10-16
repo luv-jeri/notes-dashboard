@@ -2,10 +2,11 @@ import { CalendarClock, PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { memo, useMemo, useRef, type CSSProperties } from 'react'
 import { flushSync } from 'react-dom'
 import type { Note } from '../api/notes'
-import { CATEGORY_META } from '../notes/categories'
+import { CategoryGlyph } from '../notes/CategoryGlyph'
 import { dueStatus, formatDueInline, formatLongDate, formatWeekday } from '../notes/dates'
 import { countDue, doneByDay, dueSoon } from '../notes/selectNotes'
 import { formatCount } from '../notes/text'
+import { useCategoryCatalog } from '../notes/useCategories'
 import { WeekChart } from './WeekChart'
 import styles from './SidePanel.module.css'
 
@@ -183,6 +184,7 @@ function DueSoon({
   onOpen: (note: Note) => void
 }) {
   const soon = useMemo(() => dueSoon(notes, 3), [notes])
+  const categories = useCategoryCatalog()
 
   return (
     <section className={styles.dueSection} aria-labelledby="due-heading">
@@ -194,7 +196,7 @@ function DueSoon({
       ) : (
         <ul className={styles.dueList}>
           {soon.map((note) => {
-            const { Icon, fill } = CATEGORY_META[note.category]
+            const look = categories.look(note.category)
             const due = note.due_date as string
             const overdue = dueStatus(due, today) === 'overdue'
             return (
@@ -202,11 +204,11 @@ function DueSoon({
                 <button
                   type="button"
                   className={styles.dueCard}
-                  style={{ '--due-fill': fill } as CSSProperties}
+                  style={{ '--due-fill': look.fill } as CSSProperties}
                   onClick={() => onOpen(note)}
                 >
                   <span className={styles.dueIcon}>
-                    <Icon size={16} aria-hidden="true" />
+                    <CategoryGlyph look={look} />
                   </span>
                   <span className={styles.dueText}>
                     <span className={styles.dueTitle}>{note.title}</span>

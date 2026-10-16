@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type RefObject } from 'react'
+import { useCategoryCatalog } from './useCategories'
 import styles from './NoteMap.module.css'
 
 interface MapCard {
@@ -79,6 +80,7 @@ export function NoteMap({ content, toolbar, layoutKey }: NoteMapProps) {
   const [layout, setLayout] = useState<Layout>(EMPTY)
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [hovered, setHovered] = useState<MapCard | null>(null)
+  const categories = useCategoryCatalog()
   const [dragging, setDragging] = useState(false)
   const press = useRef<{ startY: number; moved: boolean } | null>(null)
 
@@ -246,7 +248,8 @@ export function NoteMap({ content, toolbar, layoutKey }: NoteMapProps) {
             <span
               key={card.id}
               className={styles.card}
-              data-category={card.category}
+              // From the catalog, not the list, so a new colour shows at once.
+              data-color={categories.look(card.category).color}
               data-done={card.done || undefined}
               data-hovered={card.id === hovered?.id || undefined}
               style={

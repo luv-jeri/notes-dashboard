@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react'
-import type { Category } from '../api/notes'
+import type { BuiltInCategory } from '../api/notes'
 import { CATEGORY_META } from '../notes/categories'
 import styles from './NoteFan.module.css'
 
 /** One card per category, titled like the sample notes, so the picture shows what the app holds. */
-const CARDS: { category: Category; title: string }[] = [
+const CARDS: { category: BuiltInCategory; title: string }[] = [
   { category: 'personal', title: 'Renew passport' },
   { category: 'shopping', title: 'Weekend market list' },
   { category: 'work', title: 'Prepare the Q4 roadmap review' },

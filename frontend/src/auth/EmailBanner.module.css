@@ -1,0 +1,108 @@
+/*
+ * A peach strip above the headline. Text on the pastels stays dark in both
+ * themes, so the button and focus ring use --on-pastel, not --ink (which turns
+ * light in the dark theme and would vanish on peach).
+ */
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem 1rem 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--peach);
+  color: var(--on-pastel);
+}
+
+.banner :focus-visible {
+  outline-color: var(--on-pastel);
+}
+
+.icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--pastel-chip);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding-top: 0.125rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.detail {
+  color: var(--on-pastel-soft);
+}
+
+.address {
+  color: var(--on-pastel);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  font-weight: 600;
+  color: var(--pastel-danger);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.send {
+  background-color: var(--on-pastel);
+  color: var(--peach);
+}
+
+.send[aria-disabled='true'] {
+  cursor: progress;
+}
+
+@media (hover: hover) {
+  .send:hover {
+    background-color: color-mix(in srgb, var(--on-pastel) 84%, var(--peach));
+  }
+}
+
+.hide {
+  background-color: transparent;
+  color: var(--on-pastel-soft);
+}
+
+@media (hover: hover) {
+  .hide:hover {
+    background-color: var(--pastel-chip);
+    color: var(--on-pastel);
+  }
+}
+
+/* Phones: the buttons drop under the text instead of squeezing it. */
+@media (max-width: 599px) {
+  .banner {
+    flex-wrap: wrap;
+  }
+
+  .text {
+    flex-basis: calc(100% - 3.375rem);
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 3.375rem;
+  }
+}

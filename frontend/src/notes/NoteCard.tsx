@@ -2,9 +2,10 @@ import { CalendarDays, Check, CircleAlert, Pin, Trash } from 'lucide-react'
 import { Fragment, memo, useRef, useState, type CSSProperties } from 'react'
 import { flushSync } from 'react-dom'
 import type { Note } from '../api/notes'
-import { CATEGORY_META } from './categories'
+import { CategoryGlyph } from './CategoryGlyph'
 import { dueStatus, formatAgo, formatDue, formatDueInline } from './dates'
 import { shorten } from './text'
+import { useCategoryCatalog } from './useCategories'
 import { isUnsaved } from './useNotes'
 import styles from './NoteCard.module.css'
 
@@ -34,7 +35,7 @@ export const NoteCard = memo(function NoteCard({ note, today, now, onAction }: N
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const deleteButton = useRef<HTMLButtonElement>(null)
   const unsaved = isUnsaved(note)
-  const { label, Icon, fill } = CATEGORY_META[note.category]
+  const look = useCategoryCatalog().look(note.category)
   const titleId = `note-${note.id}-title`
   const overdue = !note.done && note.due_date !== null && dueStatus(note.due_date, today) === 'overdue'
 
@@ -51,16 +52,16 @@ export const NoteCard = memo(function NoteCard({ note, today, now, onAction }: N
   return (
     <article
       className={className}
-      style={{ '--category-fill': fill } as CSSProperties}
+      style={{ '--category-fill': look.fill } as CSSProperties}
       aria-labelledby={titleId}
       aria-busy={unsaved || undefined}
     >
       <div className={styles.top}>
         <span className={styles.category}>
           <span className={styles.iconCircle}>
-            <Icon size={16} aria-hidden="true" />
+            <CategoryGlyph look={look} />
           </span>
-          {label}
+          {look.label}
         </span>
 
         {/* Pinned shows on the pin button itself: filled, like a ticked check. */}

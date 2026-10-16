@@ -46,6 +46,13 @@ mode dims the pastels slightly instead of inverting them.
 | Ideas | `--peach` | `#f8dfc4` | `#ecd0b1` | `#f2bf8a` / `#e6b27c` | Lightbulb |
 | Shopping | `--mint` | `#c9eedb` | `#b5e2cb` | `#8fdab4` / `#80cfa6` | Shopping bag |
 | Health | `--sky` | `#cfe3f6` | `#bcd5ec` | `#9cc5ec` / `#8db8e2` | Heart pulse |
+| Your own | `--butter` | `#f3e8b0` | `#e7dba0` | `#e6cf6a` / `#dac25c` | First letter |
+| Your own | `--sage` | `#dbe6c6` | `#cad8b4` | `#b4cc8e` / `#a7bf80` | First letter |
+| Your own | `--stone` | `#e4ddd3` | `#d6cdc1` | `#c6baa9` / `#baad9b` | First letter |
+
+A person's own category can take any of the eight pastels. Its circle shows
+the first letter of its name instead of an icon. A new one is offered the
+colour used least so far, built-ins included.
 
 `--on-pastel` is `#18171c` and `--on-pastel-soft` is `#45424a` in both themes.
 
@@ -141,10 +148,14 @@ Sentence case everywhere. No all-caps labels.
 | Outline button | Transparent pill with a 1px `--line` ring, hover fill `--hover`. Used for "Show 48 more". |
 | Icon button | 40px `--raised` circle with an `aria-label` and a tooltip. |
 | Dialog | Native `<dialog>`, `--raised`, 24px radius, lifted shadow. The title and note sit in a sheet tinted with the chosen category. The title is focused on open and grows to four lines, then scrolls. Length hints appear once a field is 80% full. Quick dates: Today, Tomorrow, Next week, or pick a date. The footer stays in view while the form scrolls. |
+| Edit categories | The last filter pill, with a pencil, opens "Your categories": a `--raised` dialog listing the person's own categories, each with its colour circle and name, and Rename, Colour and Delete icon buttons. Rename edits the name in place (Enter saves, Escape steps back). Colour opens the eight swatches under the row and saves at once. Delete asks first and says how many notes move to Personal. "New category" below the list takes a name and a swatch; Enter adds. A deleted row hands focus to the next row. |
+| New category in the editor | The note editor's category picker ends with "New category". It opens the same name and swatch form inline (not a nested form); adding picks the new category for the note. Escape closes only the inline form. |
 | Week chart | Seven stacked bars (last 7 days), one segment per finished note in its category's strong colour, today outlined and labelled in a black pill. Readable by screen readers as a list. |
 | Toast | `--ink` pill bottom right, `--on-ink` text, optional action. Rises in; on leaving it sinks and fades (160ms, ease-in) before it's removed. At most three at once. Failed saves are alerts and stay until handled; "Undo" toasts leave after 6 seconds, and the timer pauses while the pointer or keyboard focus is on them. Closing one hands focus back to where it was. |
 | Show more | Each section draws 48 cards, then an outline button shows the next 48 and moves focus to the first new card. |
-| Log-in screen | `auth/AuthScreen.tsx`: two columns on wide screens, a `--surface` panel with the name, a fan of three note cards (only the front card carries words) and one line on what the app is for; the form on the page beside it. Under 900px the panel becomes a header strip above the form; on phones the fan hides. One form switches between "Log in" and "Create your account", keeping what was typed. Inputs are 48px tall with 1rem text, so phones don't zoom. Mistakes show under their field in `--danger` and focus moves to the first one; server answers show in a `--danger-soft` alert, with "Log in instead" when the email already has an account. A note above the form says when a session has ended. |
+| Log-in screen | `auth/AuthScreen.tsx`: two columns on wide screens, a `--surface` panel with the name, a fan of three note cards (only the front card carries words) and one line on what the app is for; the form on the page beside it. Under 900px the panel becomes a header strip above the form; on phones the fan hides. One form switches between "Log in" and "Create your account", keeping what was typed. Inputs are 48px tall with 1rem text, so phones don't zoom. Mistakes show under their field in `--danger` and focus moves to the first one; server answers show in a `--danger-soft` alert, with "Log in instead" when the email already has an account. A note above the form says when a session has ended, or what an email link did. "Forgot password?" sits on the right of the Password label and keeps the typed email. "Reset your password" asks for the email only; after sending, "Check your email" reads the same whether or not the address has an account, takes focus, and counts down its "Send again" for the minute the server makes you wait. A reset link opens "Choose a new password"; an expired link's alert offers "Send a new link". |
+| Email link screens | `auth/EmailLinkScreens.tsx`: a confirmation link shows the breathing logo with "Confirming your email…", then hands over to the notes (a toast) or the log-in screen (the note above the form). Only an unreachable server stops there, with "Try again" and "Skip for now". The token leaves the address bar as soon as the page reads it. |
+| Confirm email banner | `auth/EmailBanner.tsx`: a `--peach` strip above the headline with a mail icon in a `--pastel-chip` circle, "Confirm your email", the address in bold, a dark "Send again" pill and "Hide for now". Text and focus ring use `--on-pastel`, which stays dark in both themes. A refusal (wait a minute, five a day) shows under the text. On phones the buttons drop below the text. Gone once the email is confirmed. |
 | Account menu | Last button in the rail foot: a circle with the person's initial. It opens a `--raised` panel with their name, email and "Log out". Beside the slim rail it opens to the right; in the widened rail it opens upward inside the rail; on phones it is the last tab and the panel sits above the bar. Escape, a press outside or tabbing away closes it, and Escape hands focus back to the button. |
 | Empty screen | A new account's first view: "No notes yet", one line on what to write, one on the sample notes, then "New note" (primary) and "Add sample notes" (outline), with the small card fan beside them when there is room. The headline's second line reads "start your first note". |
 
@@ -194,6 +205,8 @@ Sentence case everywhere. No all-caps labels.
 | F19 | Accounts: sign up, log in, log out; each person sees only their notes | `backend/main.py`, `auth/`, `api/auth.ts`, `docs/auth.md` |
 | F20 | Account menu in the rail and the phone tab bar | `Rail.tsx` |
 | F21 | Empty screen for a new account, with sample notes on request | `NotesStates.tsx`, `POST /notes/samples` |
+| F22 | Confirm your email and reset a forgotten password by emailed link | `backend/main.py`, `auth/AuthScreen.tsx`, `auth/EmailLinkScreens.tsx`, `auth/EmailBanner.tsx`, `auth/emailLink.ts`, `docs/auth.md` |
+| F23 | Your own categories: add (also from the editor), rename, recolour, delete | `backend/main.py`, `api/categories.ts`, `notes/useCategories.ts`, `notes/CategoriesProvider.tsx`, `notes/CategoryManager.tsx`, `notes/NewCategoryForm.tsx`, `notes/SwatchPicker.tsx` |
 
 Done means: every row above works in the browser against the real backend,
 in both themes and at phone width, with tests passing.

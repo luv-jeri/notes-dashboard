@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react'
-import { CATEGORIES, type Note } from '../api/notes'
-import { CATEGORY_META } from '../notes/categories'
+import type { Note } from '../api/notes'
+import type { CategoryCatalog } from '../notes/categories'
 import { formatWeekday, formatWeekdayLong } from '../notes/dates'
 import type { DayTally } from '../notes/selectNotes'
 import { formatCount } from '../notes/text'
+import { useCategoryCatalog } from '../notes/useCategories'
 import styles from './WeekChart.module.css'
 
 /** Up to this many notes a day, each gets its own block. Past it, blocks would be slivers. */
@@ -18,6 +19,7 @@ export function WeekChart({ days, today }: { days: DayTally[]; today: string }) 
   // At least three rows, so a single note doesn't look like a full bar.
   const rows = Math.max(3, ...days.map((day) => day.notes.length))
   const perNote = rows <= MAX_BLOCKS
+  const categories = useCategoryCatalog()
 
   return (
     <ol className={styles.chart} style={{ '--rows': rows } as CSSProperties}>
@@ -34,15 +36,15 @@ export function WeekChart({ days, today }: { days: DayTally[]; today: string }) 
                     <span
                       key={note.id}
                       className={styles.block}
-                      style={{ backgroundColor: CATEGORY_META[note.category].strong }}
+                      style={{ backgroundColor: categories.look(note.category).strong }}
                     />
                   ))
-                : countByCategory(day.notes).map(([category, count]) => (
+                : countByCategory(day.notes, categories).map(([category, count]) => (
                     <span
                       key={category}
                       className={styles.segment}
                       style={
-                        { backgroundColor: CATEGORY_META[category].strong, '--count': count } as CSSProperties
+                        { backgroundColor: categories.look(category).strong, '--count': count } as CSSProperties
                       }
                     />
                   ))}
@@ -57,8 +59,16 @@ export function WeekChart({ days, today }: { days: DayTally[]; today: string }) 
   )
 }
 
-function countByCategory(notes: Note[]) {
-  const counts = new Map(CATEGORIES.map((category) => [category, 0]))
-  for (const note of notes) counts.set(note.category, (counts.get(note.category) ?? 0) + 1)
+/**
+ * Notes per category, built-in categories first, then the person's own in
+ * the order they were added. A note in an unknown category counts as
+ * Personal, which is how its card shows too.
+ */
+function countByCategory(notes: Note[], categories: CategoryCatalog): [string, number][] {
+  const counts = new Map(categories.options.map((look) => [look.key, 0]))
+  for (const note of notes) {
+    const { key } = categories.look(note.category)
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
   return [...counts].filter(([, count]) => count > 0)
 }

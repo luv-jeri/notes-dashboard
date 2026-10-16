@@ -3,6 +3,7 @@ import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, use
 import { flushSync } from 'react-dom'
 import type { User } from '../api/auth'
 import { toInput, type Note, type NoteInput } from '../api/notes'
+import { EmailBanner } from '../auth/EmailBanner'
 import { useLogout } from '../auth/session'
 import { useNow } from '../hooks/useNow'
 import { useShortcuts } from '../hooks/useShortcuts'
@@ -14,7 +15,8 @@ import { SidePanel } from '../panel/SidePanel'
 import { useTheme } from '../theme/useTheme'
 import { useToast } from '../toast/ToastContext'
 import { Select, type SelectOption } from '../ui/Select'
-import { CATEGORY_META } from './categories'
+import { isBuiltIn } from './categories'
+import { CategoriesProvider } from './CategoriesProvider'
 import { CategoryPills } from './CategoryPills'
 import { greeting, toDateKey } from './dates'
 import { NoteCard, type CardAction, type CardActionHandler } from './NoteCard'
@@ -30,6 +32,7 @@ import {
   type View,
 } from './selectNotes'
 import { formatCount, quoteTitle } from './text'
+import { useCategoryCatalog } from './useCategories'
 import { useAddSampleNotes, useCreateNote, useDeleteNote, useNotesQuery, useUpdateNote } from './useNotes'
 import styles from './NotesDashboard.module.css'
 import gridStyles from './NotesStates.module.css'
@@ -63,11 +66,20 @@ const cardControl = (id: number, action: CardAction) =>
   document.querySelector<HTMLElement>(`li[data-note-id="${id}"] [data-action="${action}"]`)
 
 export function NotesDashboard({ user }: { user: User }) {
+  return (
+    <CategoriesProvider>
+      <Dashboard user={user} />
+    </CategoriesProvider>
+  )
+}
+
+function Dashboard({ user }: { user: User }) {
   const notesQuery = useNotesQuery()
   const createNote = useCreateNote()
   const updateNote = useUpdateNote()
   const deleteNote = useDeleteNote()
   const addSamples = useAddSampleNotes()
+  const categories = useCategoryCatalog()
   const logout = useLogout()
   const toast = useToast()
   const { theme, toggle: toggleTheme } = useTheme()
@@ -293,7 +305,9 @@ export function NotesDashboard({ user }: { user: User }) {
 
   function renderEmpty() {
     const query = deferredSearch.trim()
-    const label = category === 'all' ? null : CATEGORY_META[category].label.toLowerCase()
+    const look = category === 'all' ? null : categories.look(category)
+    // "No work notes yet", but a name someone typed stays as they typed it.
+    const label = look && (isBuiltIn(look.key) ? look.label.toLowerCase() : look.label)
 
     if (query) {
       const narrowed = view !== 'all' || category !== 'all'
@@ -454,6 +468,7 @@ export function NotesDashboard({ user }: { user: User }) {
       </div>
 
       <main className={styles.main}>
+        <EmailBanner user={user} />
         <h1 ref={headlineRef} className={styles.headline}>
           <span className={styles.headlineLine}>
             {greeting(now)}, {firstName(user.name)},

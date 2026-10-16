@@ -17,6 +17,12 @@ export function shorten(text: string, max: number): string {
   return `${text.slice(0, end).trimEnd()}…`
 }
 
+/** What a reader sees as the first character: "É", "👩‍🍳" or "東", never half of one. */
+export function firstGrapheme(text: string): string {
+  for (const { segment } of graphemes.segment(text.trim())) return segment
+  return ''
+}
+
 /** A title inside a sentence, quoted and short enough for a toast: "Renew passport". */
 export const quoteTitle = (title: string) => `"${shorten(title, 60)}"`
 

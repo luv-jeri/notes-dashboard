@@ -1,17 +1,12 @@
-import { X } from 'lucide-react'
-import { useEffect, useId, useRef, useState, type CSSProperties, type SubmitEvent } from 'react'
-import {
-  CATEGORIES,
-  CONTENT_MAX,
-  TITLE_MAX,
-  toInput,
-  type Category,
-  type Note,
-  type NoteInput,
-} from '../api/notes'
-import { CATEGORY_META } from './categories'
+import { Plus, X } from 'lucide-react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type SubmitEvent } from 'react'
+import { flushSync } from 'react-dom'
+import { CONTENT_MAX, TITLE_MAX, toInput, type Category, type Note, type NoteInput } from '../api/notes'
+import { CategoryGlyph } from './CategoryGlyph'
 import { addDays } from './dates'
+import { NewCategoryForm } from './NewCategoryForm'
 import { formatCount } from './text'
+import { useCategoryCatalog } from './useCategories'
 import styles from './NoteFormDialog.module.css'
 
 export type NoteDefaults = Partial<Pick<NoteInput, 'category' | 'due_date' | 'pinned'>>
@@ -36,6 +31,9 @@ export function NoteFormDialog({ note, defaults = {}, today, onSubmit, onClose }
   const [dueDate, setDueDate] = useState(note?.due_date ?? defaults.due_date ?? '')
   const [pinned, setPinned] = useState(note?.pinned ?? defaults.pinned ?? false)
   const [titleError, setTitleError] = useState<string | null>(null)
+  const [addingCategory, setAddingCategory] = useState(false)
+  const newCategoryButton = useRef<HTMLButtonElement>(null)
+  const categories = useCategoryCatalog()
   const ids = useId()
   const isEditing = note !== undefined
 
@@ -56,7 +54,10 @@ export function NoteFormDialog({ note, defaults = {}, today, onSubmit, onClose }
     const input: NoteInput = {
       title: title.trim(),
       content: content.trim(),
-      category,
+      // A category that's gone shows as Personal in the pills, so it saves as
+      // Personal too. Only once the person's categories have loaded: before
+      // that, a key we don't know yet may be one of theirs.
+      category: categories.loaded ? categories.look(category).key : category,
       due_date: dueDate || null,
       pinned,
       done: note?.done ?? false,
@@ -72,6 +73,31 @@ export function NoteFormDialog({ note, defaults = {}, today, onSubmit, onClose }
   }
 
   const close = () => dialogRef.current?.close()
+
+  function closeNewCategory() {
+    flushSync(() => setAddingCategory(false))
+    newCategoryButton.current?.focus()
+  }
+
+  // A new category is chosen for this note. Its pill appears a moment after
+  // the server answers; focus moves to it then, and only then does the form
+  // close, so focus is never left with nowhere to go.
+  const addedCategory = useRef<string | null>(null)
+  function handleCategoryAdded(key: string) {
+    setCategory(key)
+    addedCategory.current = key
+  }
+  useLayoutEffect(() => {
+    const key = addedCategory.current
+    if (!key) return
+    const pill = [...(dialogRef.current?.querySelectorAll<HTMLInputElement>(`input[name="${ids}-category"]`) ?? [])].find(
+      (input) => input.value === key,
+    )
+    if (!pill) return
+    addedCategory.current = null
+    pill.focus()
+    setAddingCategory(false)
+  }, [categories, ids])
 
   // The dialog is closed (focus is already back) the moment close() runs, but
   // it is still fading out. It leaves the page once that has finished.
@@ -111,7 +137,7 @@ export function NoteFormDialog({ note, defaults = {}, today, onSubmit, onClose }
         {/* The top half takes the category's colour: a preview of the card. */}
         <div
           className={styles.sheet}
-          style={{ '--sheet-fill': CATEGORY_META[category].fill } as CSSProperties}
+          style={{ '--sheet-fill': categories.look(category).fill } as CSSProperties}
         >
           <div className={styles.sheetHead}>
             <h2 id={`${ids}-heading`} className={styles.heading}>
@@ -182,26 +208,44 @@ export function NoteFormDialog({ note, defaults = {}, today, onSubmit, onClose }
         <fieldset className={styles.field}>
           <legend className={styles.label}>Category</legend>
           <div className={styles.choices}>
-            {CATEGORIES.map((id) => {
-              const { label, Icon, fill } = CATEGORY_META[id]
-              return (
-                <label key={id} className={styles.choice}>
-                  <input
-                    type="radio"
-                    name={`${ids}-category`}
-                    className="visually-hidden"
-                    value={id}
-                    checked={category === id}
-                    onChange={() => setCategory(id)}
-                  />
-                  <span className={styles.choiceIcon} style={{ backgroundColor: fill }}>
-                    <Icon size={14} aria-hidden="true" />
-                  </span>
-                  {label}
-                </label>
-              )
-            })}
+            {categories.options.map((look) => (
+              <label key={look.key} className={styles.choice}>
+                <input
+                  type="radio"
+                  name={`${ids}-category`}
+                  className="visually-hidden"
+                  value={look.key}
+                  // A category that's gone shows as Personal, as its card does.
+                  checked={categories.look(category).key === look.key}
+                  onChange={() => setCategory(look.key)}
+                />
+                <span className={styles.choiceIcon} style={{ backgroundColor: look.fill }}>
+                  <CategoryGlyph look={look} size={14} />
+                </span>
+                {look.label}
+              </label>
+            ))}
+            <button
+              ref={newCategoryButton}
+              type="button"
+              className={`${styles.choice} ${styles.newChoice}`}
+              aria-expanded={addingCategory}
+              onClick={() => (addingCategory ? closeNewCategory() : setAddingCategory(true))}
+            >
+              <span className={styles.choiceIcon}>
+                <Plus size={14} aria-hidden="true" />
+              </span>
+              New category
+            </button>
           </div>
+          {addingCategory && (
+            <NewCategoryForm
+              label="New category"
+              autoFocus
+              onAdded={(created) => handleCategoryAdded(created.key)}
+              onCancel={closeNewCategory}
+            />
+          )}
         </fieldset>
 
         <div className={styles.field}>

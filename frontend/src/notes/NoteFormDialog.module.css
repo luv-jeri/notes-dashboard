@@ -247,6 +247,33 @@
   color: var(--on-pastel);
 }
 
+/* "New category" opens a form rather than choosing, so it's drawn as an outline. */
+.newChoice {
+  border: none;
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.newChoice .choiceIcon {
+  background-color: var(--surface);
+  color: var(--ink);
+  transition: rotate var(--duration-spring) var(--ease-spring);
+}
+
+.newChoice[aria-expanded='true'] {
+  background-color: var(--hover);
+}
+
+/* Open, the plus turns into a cross: pressing it again closes the form. */
+.newChoice[aria-expanded='true'] .choiceIcon {
+  rotate: 45deg;
+}
+
+.newChoice:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .date {
   height: 2.5rem;
   padding: 0 0.875rem;

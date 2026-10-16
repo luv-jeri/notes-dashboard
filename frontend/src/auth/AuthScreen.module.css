@@ -105,6 +105,14 @@
   gap: 0.375rem;
 }
 
+/* The label, with room on the right for "Forgot password?". */
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -222,6 +230,17 @@
   }
 }
 
+.small {
+  font-size: 0.875rem;
+}
+
+/* An address can be one long word; let it break rather than widen the form. */
+.address {
+  color: var(--ink);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 .splash {
   display: grid;
   place-items: center;
@@ -247,7 +266,11 @@
   width: min(100%, 28rem);
 }
 
-.retry {
+.retryRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
   margin-top: 0.5rem;
 }
 
