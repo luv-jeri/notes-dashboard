@@ -330,7 +330,10 @@ def get_store() -> NoteStore:
 
 Store = Annotated[NoteStore, Depends(get_store)]
 
-app = FastAPI(title="Notes API")
+# The app is published under /api. Locally the Vite proxy strips that prefix;
+# on Vercel the request keeps it. With root_path set, routing drops a leading
+# /api when there is one, so /notes and /api/notes reach the same endpoint.
+app = FastAPI(title="Notes API", root_path="/api")
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # The largest valid note is about 40 KB of JSON, even written entirely in

@@ -58,9 +58,11 @@ The live demo runs on Vercel as one project with two
 
 - `frontend/` is built with Vite and served as static files.
 - `backend/` runs the same FastAPI app as a Python function.
-- Requests to `/api/*` go to the backend with `/api` removed, exactly as the
-  Vite proxy does locally; everything else goes to the frontend. One domain
-  serves both, so there is still no CORS setup.
+- Requests to `/api/*` go to the backend and everything else to the
+  frontend. One domain serves both, so there is still no CORS setup. Vercel
+  passes the path on with `/api` still in front; the app is created with
+  `root_path="/api"`, so it accepts `/api/notes` there and `/notes` behind
+  the local Vite proxy.
 
 To deploy your own copy: `npx vercel@latest deploy --prod` from the
 repository root.
