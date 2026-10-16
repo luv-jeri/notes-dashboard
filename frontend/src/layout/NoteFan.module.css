@@ -1,0 +1,108 @@
+/*
+ * The cards share one centre and pivot from a point below it, like cards
+ * held in a hand. --offset runs -2 to 2 across the five; --distance is its
+ * size, so the outer cards sit a little lower.
+ */
+.fan {
+  --card-width: 13rem;
+  --card-height: 9.5rem;
+  --spread: 3.5rem;
+  --turn: 7deg;
+  --drop: 0.625rem;
+
+  position: relative;
+  width: calc(var(--card-width) + 4 * var(--spread) + 2rem);
+  max-width: 100%;
+  height: calc(var(--card-height) + 3.5rem);
+}
+
+.fan[data-size='small'] {
+  --card-width: 9.5rem;
+  --card-height: 7rem;
+  --spread: 2.5rem;
+  --turn: 6deg;
+  --drop: 0.375rem;
+}
+
+.card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: var(--card-width);
+  height: var(--card-height);
+  margin: calc(var(--card-height) / -2) 0 0 calc(var(--card-width) / -2);
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--fill);
+  color: var(--on-pastel);
+  /* A ring in the colour behind the fan, so overlapping pastels read as
+     separate sheets without a drop shadow (cards never cast one). */
+  box-shadow: 0 0 0 3px var(--surface);
+  transform-origin: 50% 140%;
+  translate: calc(var(--offset) * var(--spread)) calc(var(--distance) * var(--drop));
+  rotate: calc(var(--offset) * var(--turn));
+  /* The page's one entrance: the hand fans out from a stack, left to right. */
+  animation: fan-out var(--duration-spring) var(--ease-spring) both;
+  animation-delay: calc((var(--offset) + 2) * 45ms + 120ms);
+}
+
+.fan[data-size='small'] .card {
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+}
+
+/* Like a real hand, only a corner of each lower card shows: its colour and
+   icon. Words cut off mid-way would read as a fault, so only the front card
+   has any. */
+.card:not(:last-child) .words {
+  visibility: hidden;
+}
+
+@keyframes fan-out {
+  from {
+    opacity: 0;
+    translate: 0 0.75rem;
+    rotate: 0deg;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--pastel-chip);
+}
+
+.title {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.fan[data-size='small'] .head {
+  font-size: 0.6875rem;
+}
+
+.fan[data-size='small'] .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.fan[data-size='small'] .title {
+  font-size: 0.8125rem;
+}

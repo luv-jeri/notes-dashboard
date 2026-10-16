@@ -144,6 +144,9 @@ Sentence case everywhere. No all-caps labels.
 | Week chart | Seven stacked bars (last 7 days), one segment per finished note in its category's strong colour, today outlined and labelled in a black pill. Readable by screen readers as a list. |
 | Toast | `--ink` pill bottom right, `--on-ink` text, optional action. Rises in; on leaving it sinks and fades (160ms, ease-in) before it's removed. At most three at once. Failed saves are alerts and stay until handled; "Undo" toasts leave after 6 seconds, and the timer pauses while the pointer or keyboard focus is on them. Closing one hands focus back to where it was. |
 | Show more | Each section draws 48 cards, then an outline button shows the next 48 and moves focus to the first new card. |
+| Log-in screen | `auth/AuthScreen.tsx`: two columns on wide screens, a `--surface` panel with the name, a fan of three note cards (only the front card carries words) and one line on what the app is for; the form on the page beside it. Under 900px the panel becomes a header strip above the form; on phones the fan hides. One form switches between "Log in" and "Create your account", keeping what was typed. Inputs are 48px tall with 1rem text, so phones don't zoom. Mistakes show under their field in `--danger` and focus moves to the first one; server answers show in a `--danger-soft` alert, with "Log in instead" when the email already has an account. A note above the form says when a session has ended. |
+| Account menu | Last button in the rail foot: a circle with the person's initial. It opens a `--raised` panel with their name, email and "Log out". Beside the slim rail it opens to the right; in the widened rail it opens upward inside the rail; on phones it is the last tab and the panel sits above the bar. Escape, a press outside or tabbing away closes it, and Escape hands focus back to the button. |
+| Empty screen | A new account's first view: "No notes yet", one line on what to write, one on the sample notes, then "New note" (primary) and "Add sample notes" (outline), with the small card fan beside them when there is room. The headline's second line reads "start your first note". |
 
 ## Built for many notes
 
@@ -188,6 +191,9 @@ Sentence case everywhere. No all-caps labels.
 | F16 | Scroll map: see every note at a glance, jump or scrub to any of them | `NoteMap.tsx` |
 | F17 | Foldable rail and panel, remembered | `Rail.tsx`, `SidePanel.tsx`, `useStoredFlag.ts` |
 | F18 | Motion that answers every action, eased in and out, off under reduced motion | `tokens.css`, `*.module.css`, `useTheme.ts`, `ToastProvider.tsx` |
+| F19 | Accounts: sign up, log in, log out; each person sees only their notes | `backend/main.py`, `auth/`, `api/auth.ts`, `docs/auth.md` |
+| F20 | Account menu in the rail and the phone tab bar | `Rail.tsx` |
+| F21 | Empty screen for a new account, with sample notes on request | `NotesStates.tsx`, `POST /notes/samples` |
 
 Done means: every row above works in the browser against the real backend,
 in both themes and at phone width, with tests passing.

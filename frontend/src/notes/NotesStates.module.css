@@ -86,3 +86,49 @@
 .message :global(.button) {
   margin-top: 0.75rem;
 }
+
+/* Sized by the notes column, not the window: the picture goes when the column is narrow. */
+.welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface);
+  container-type: inline-size;
+}
+
+.welcomeText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.welcomeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.welcomeActions [aria-disabled='true'] {
+  cursor: progress;
+}
+
+.welcomeFan {
+  flex-shrink: 0;
+}
+
+@container (max-width: 44rem) {
+  .welcomeFan {
+    display: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .welcome {
+    padding: 1.5rem;
+  }
+}

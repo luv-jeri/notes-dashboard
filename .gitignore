@@ -8,3 +8,10 @@ dist/
 *.local
 coverage/
 .vercel
+
+backend/notes.db
+
+# Local secrets (vercel env pull writes these)
+.env
+.env.*
+!.env.example

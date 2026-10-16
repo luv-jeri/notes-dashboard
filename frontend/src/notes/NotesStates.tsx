@@ -1,3 +1,4 @@
+import { NoteFan } from '../layout/NoteFan'
 import styles from './NotesStates.module.css'
 
 export function NotesLoading() {
@@ -35,6 +36,47 @@ export function NotesMessage({ title, detail, actionLabel, onAction }: NotesMess
           {actionLabel}
         </button>
       )}
+    </div>
+  )
+}
+
+interface NotesWelcomeProps {
+  onNewNote: () => void
+  onAddSamples: () => void
+  addingSamples: boolean
+}
+
+/** A new account's first screen: start writing, or look around with sample notes first. */
+export function NotesWelcome({ onNewNote, onAddSamples, addingSamples }: NotesWelcomeProps) {
+  return (
+    <div className={styles.welcome}>
+      <div className={styles.welcomeText}>
+        <h2 className={styles.messageTitle}>No notes yet</h2>
+        <p className={styles.messageDetail}>
+          Write down a task, a list or an idea. Give it a due date to see it in Today.
+        </p>
+        <p className={styles.messageDetail}>
+          Or add a few sample notes to see how Today, Pinned and Done work. Delete them whenever you like.
+        </p>
+        <div className={styles.welcomeActions}>
+          <button type="button" className="button button-primary" onClick={onNewNote}>
+            New note
+          </button>
+          <button
+            type="button"
+            className="button button-outline"
+            aria-disabled={addingSamples || undefined}
+            onClick={() => {
+              if (!addingSamples) onAddSamples()
+            }}
+          >
+            {addingSamples ? 'Adding sample notes…' : 'Add sample notes'}
+          </button>
+        </div>
+      </div>
+      <div className={styles.welcomeFan}>
+        <NoteFan size="small" />
+      </div>
     </div>
   )
 }
