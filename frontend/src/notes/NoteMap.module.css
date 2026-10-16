@@ -127,6 +127,12 @@
   top: 0;
   left: -0.125rem;
   right: -0.125rem;
+  /* The script sets the height to exactly what's on screen. Padding and the
+     border sit outside that, as they do at the sides, so the frame never
+     lands on the last block when the list ends on screen. */
+  box-sizing: content-box;
+  margin-top: calc(-0.125rem - 1.5px);
+  padding-block: 0.125rem;
   border: 1.5px solid var(--ink);
   border-radius: 6px;
   background-color: color-mix(in srgb, var(--ink) 7%, transparent);

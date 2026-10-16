@@ -134,10 +134,16 @@
   height: 3rem;
   border-radius: 50%;
   background-color: var(--raised);
+  /* The fill stops at the padding, so a press can shrink it. */
+  background-clip: content-box;
   transition:
     background-color var(--duration-quick) var(--ease-out),
     color var(--duration-quick) var(--ease-out),
-    scale var(--duration-spring) var(--ease-spring);
+    padding var(--duration-spring) var(--ease-spring);
+}
+
+.circle > :not(.dot) {
+  transition: scale var(--duration-spring) var(--ease-spring);
 }
 
 .circle > svg,
@@ -175,8 +181,19 @@
   }
 }
 
-/* Pressing sinks the circle; letting go springs it back. */
+/*
+ * Pressing sinks the circle; letting go springs it back. The fill shrinks
+ * inside its padding and the icon scales on its own. A scale on the circle
+ * would lift the icon into one layer with the fill, under the indicator: the
+ * view you just picked showed a blank black circle until the spring settled.
+ */
 .button:active .circle {
+  padding: 0.15rem;
+  transition-duration: 80ms;
+  transition-timing-function: var(--ease-out);
+}
+
+.button:active .circle > :not(.dot) {
   scale: 0.9;
   transition-duration: 80ms;
   transition-timing-function: var(--ease-out);

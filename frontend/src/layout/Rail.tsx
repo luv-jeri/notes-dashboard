@@ -217,7 +217,8 @@ function Account({ user, onLogOut, loggingOut }: AccountProps) {
         onClick={() => setOpen((current) => !current)}
       >
         <span className={`${styles.circle} ${styles.avatar}`} aria-hidden="true">
-          {initial}
+          {/* In its own element, so a press can sink it like the icons. */}
+          <span>{initial}</span>
         </span>
         <span className={styles.label} aria-hidden="true">
           <span className={styles.long}>{user.name}</span>
