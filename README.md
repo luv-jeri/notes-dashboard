@@ -4,9 +4,11 @@ A React notes app for the Karbon Digital AI Engineering Assessment. Notes live
 in a small FastAPI backend, and every create, read, update and delete goes
 through its API. Beyond the brief, each note can have a category, a due date,
 a pin and a done tick, so the dashboard works as a light to-do list too.
+People sign up with an email and a password, and each person sees only their
+own notes.
 
-**Try it live: https://notes-dashboard-jade.vercel.app** (the demo notes
-reset after a quiet spell; see [Deploy](#deploy)).
+**Try it live: https://notes-dashboard-jade.vercel.app** (create an account,
+then add your own notes or the sample set).
 
 ![The dashboard in light mode](docs/screenshot.png)
 
@@ -32,9 +34,12 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The backend starts with 15 sample notes dated
-around today, so every view has something in it. Notes are kept in memory, so
-restarting the backend resets them.
+Open http://localhost:5173 and create an account. A new account starts
+empty; "Add sample notes" fills it with 15 notes dated around today, so every
+view has something in it. Accounts and notes are saved in a SQLite file,
+`backend/notes.db`, so they survive a restart. You stay logged in across
+restarts only if `NOTES_JWT_SECRET` is set; without it the backend makes a new
+signing secret each time it starts, and you log in again.
 
 The Vite dev server forwards `/api/*` to port 8000, so the browser talks to a
 single origin and the backend needs no CORS setup. To use an API somewhere
@@ -48,6 +53,7 @@ Other ways to run it:
 | Try the production build | `cd frontend && npm run build && npm run preview`, then open http://localhost:4173 |
 | Run the frontend tests | `cd frontend && npm test` |
 | Run the backend tests | `pytest backend/tests` (from the root, with the venv active) |
+| Run them against Postgres too | `NOTES_TEST_DATABASE_URL=postgresql://user:password@host/db pytest backend/tests` |
 | Lint | `cd frontend && npm run lint` |
 
 Keyboard: `N` new note, `/` search, `Esc` closes the editor or cancels a
@@ -67,13 +73,18 @@ The live demo runs on Vercel as one project with two
   `root_path="/api"`, so it accepts `/api/notes` there and `/notes` behind
   the local Vite proxy.
 
-To deploy your own copy: `npx vercel@latest deploy --prod` from the
-repository root.
+Accounts and notes are stored in Neon Postgres (free tier, added through
+Vercel's Neon integration). The backend needs two environment variables on
+Vercel and refuses to start without them:
 
-Notes are still kept in memory. The function sleeps when no one is using it,
-and waking up starts it again with the 15 sample notes, so the demo resets
-after a quiet spell. A real deployment would swap `NoteStore` for a database;
-nothing outside `backend/main.py` would change.
+| Variable | What it is |
+| --- | --- |
+| `DATABASE_URL` (or `POSTGRES_URL`) | The Postgres connection string. The Neon integration sets it. |
+| `NOTES_JWT_SECRET` | The secret that signs session tokens. Any long random string, for example from `python3 -c "import secrets; print(secrets.token_urlsafe(48))"`. |
+
+To deploy your own copy: add both variables to the Vercel project, then run
+`npx vercel@latest deploy --prod` from the repository root. Tables are
+created on first start.
 
 ## What the brief asked for, and where it lives
 
@@ -99,14 +110,21 @@ nothing outside `backend/main.py` would change.
   once. If the server refuses, the change rolls back and a toast says what
   failed, with "Try again". A just-ticked note offers "Undo". Offline, a
   save fails at once with "You're offline" instead of waiting silently.
-- **Tests.** 31 frontend tests with React Testing Library cover the card, the
-  sort dropdown, the whole app against a fake server, and the pure logic. 16 backend tests cover
-  the API. See [Tests](#tests).
+- **Tests.** 39 frontend tests with React Testing Library cover the card, the
+  sort dropdown, the whole app (accounts included) against a fake server, and
+  the pure logic. 90 backend tests cover the API, accounts and sessions, on
+  SQLite and on Postgres. See [Tests](#tests).
 - **React Native.** A short plan is below in
   [Adapting it to mobile](#adapting-it-to-mobile).
 
 Added on top of the brief:
 
+- Accounts: sign up, log in and log out with an email and a password; each
+  person's notes are private to them. The session is a signed token (a JWT)
+  in a cookie that page scripts can't read. A new account opens on an empty
+  screen with "New note" and "Add sample notes". If a session ends while you
+  work, the app returns to the log-in screen and says why. Details and
+  decisions: [docs/auth.md](docs/auth.md).
 - Categories, due dates (overdue and due-today states), pin to top, mark done
   and undo, with the server keeping the time a note was finished.
 - A side panel with today's progress, a chart of the last 7 days and the notes
@@ -142,14 +160,18 @@ Changes to the FastAPI starter:
 - **The server assigns ids.** Clients send only the note's fields.
 - **Missing notes return 404.** The starter answered 200 with an error body,
   so the frontend could not tell failure from success.
-- **Writes take a lock.** FastAPI runs sync endpoints on a thread pool, so
-  two requests could touch the list at the same time.
+- **Notes are saved in a database** (SQLAlchemy 2): a SQLite file locally,
+  Postgres on Vercel. Each write is one transaction.
+- **Every notes route needs a session.** A note belongs to one user; another
+  user's note id answers 404, so ids don't reveal that it exists.
 - **Validation.** Titles must not be blank; titles are capped at 200
   characters and notes at 10,000; categories come from a fixed list.
 
 ## Built to handle many notes, and long ones
 
-Measured with 2,015 notes on the development laptop:
+Measured with 2,015 notes on the development laptop, before accounts were
+added, when the backend kept notes in memory. The frontend figures still
+apply; the backend now reads from a database, so its times will be higher.
 
 | What | Result |
 | --- | --- |
@@ -164,12 +186,12 @@ Measured with 2,015 notes on the development laptop:
 
 How:
 
-- **Backend.** Notes are stored by id, so finding, editing and deleting one
-  costs the same with ten notes or ten thousand. The list is turned into JSON
-  once per change, not once per request, and carries an ETag: the app
-  refetches whenever the window regains focus, and when nothing changed the
-  answer is an empty 304. Large answers are gzipped. Request bodies over
-  128 KB are refused before they are read.
+- **Backend.** Notes are looked up by id and owner, with an index on the
+  owner, so finding, editing and deleting one stays fast as the table grows.
+  The list carries an ETag (a hash of its JSON): the app refetches whenever
+  the window regains focus, and when nothing changed the answer is an empty
+  304. Large answers are gzipped. Request bodies over 128 KB are refused
+  before they are read.
 - **Rendering.** Each section draws 48 cards, then a "Show 48 more" button
   (focus moves to the first new card). Cards are memoised, so ticking one
   note re-renders one card, not the grid. Cards far off screen skip layout
@@ -185,17 +207,17 @@ How:
 ## Tests
 
 ```bash
-cd frontend && npm test            # 31 tests, about 5 seconds
-pytest backend/tests               # 16 tests, under 1 second
+cd frontend && npm test            # 39 tests, about 5 seconds
+pytest backend/tests               # 90 tests, about 4 seconds
 ```
 
 | File | Covers |
 | --- | --- |
 | `NoteCard.test.tsx` | The component test the brief asks for: title and preview, overdue wording, pin / done / open, and the delete confirmation (focus starts on "Keep", so pressing Enter twice can't delete) |
 | `Select.test.tsx` | The sort dropdown: pick with the mouse, then with the keyboard alone, Escape closes without changing anything, typing a letter jumps to an option, a press outside closes it |
-| `App.test.tsx` | The whole app against a fake server: loading, a failed load with "Try again", a new note shown before the server answers, search with no matches, done and Undo, a failed delete that rolls back and then succeeds on "Try again", an offline save that fails at once and keeps focus in the page |
+| `App.test.tsx` | The whole app against a fake server: loading, a failed load with "Try again", a new note shown before the server answers, search with no matches, done and Undo, a failed delete that rolls back and then succeeds on "Try again", an offline save that fails at once and keeps focus in the page. Accounts: log in, a wrong password, sign-up field checks, sign up to the empty screen and sample notes, an email that already has an account, the account menu and log out, and a session that ends mid-use |
 | `selectNotes.test.ts`, `dates.test.ts`, `text.test.ts` | Sections, search, filters and sorting; date maths across month and year ends; preview cutting with emoji |
-| `backend/tests/test_api.py` | Ids, defaults, validation and limits, 304s, gzip, 404s, done time kept on edit and cleared on undo |
+| `backend/tests/test_api.py` | Ids, defaults, validation and limits, 304s, gzip, 404s, done time kept on edit and cleared on undo. Accounts: sign-up and log-in rules, hashed passwords, cookie flags, expired and tampered tokens, one user unable to see or change another's notes, and that passwords never come back in an error |
 
 ## Adapting it to mobile
 
@@ -228,10 +250,11 @@ What changes:
 
 ```
 backend/
-  main.py              API, storage, validation, ETag and gzip
+  main.py              API, accounts and sessions, database, validation, ETag and gzip
   tests/test_api.py
 frontend/src/
-  api/                 fetch wrapper with readable errors, typed notes API
+  api/                 fetch wrapper with readable errors, typed notes and auth APIs
+  auth/                log-in and sign-up screen, session hooks
   notes/               dashboard, card, editor, scroll map, data hooks, pure logic
   panel/               progress panel (folds to a strip) and week chart
   layout/              icon rail (widens to show names) / bottom tab bar
@@ -240,4 +263,5 @@ frontend/src/
   theme/, hooks/       theme, shortcuts, clock, stable callbacks
   styles/              design tokens and global styles
 docs/design-system.md  colours, type, components, layout rules
+docs/auth.md           accounts: decisions and API
 ```

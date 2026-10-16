@@ -42,4 +42,7 @@ export const notesApi = {
     request<Note>(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
 
   remove: (id: number) => request<void>(`/notes/${id}`, { method: 'DELETE' }),
+
+  /** Adds the example notes to the account and answers with the whole list. */
+  addSamples: () => request<Note[]>('/notes/samples', { method: 'POST' }),
 }

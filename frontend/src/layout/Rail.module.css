@@ -280,6 +280,105 @@
   }
 }
 
+/*
+ * The account button and its panel. The panel floats beside the narrow rail;
+ * the wide rail clips sideways, so there it opens upward, inside the rail.
+ */
+.account {
+  position: relative;
+  display: flex;
+}
+
+.avatar {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+/* Open: the panel says what the tooltip would. */
+.button[aria-expanded='true']::after {
+  display: none;
+}
+
+.button[aria-expanded='true'] .circle {
+  background-color: color-mix(in srgb, var(--raised) 82%, var(--ink));
+}
+
+.rail[data-expanded] .button[aria-expanded='true'] {
+  background-color: var(--hover);
+}
+
+.panel {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + 1.75rem);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  width: 16rem;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--raised);
+  box-shadow: var(--shadow-float);
+  transform-origin: 0 100%;
+  animation: panel-in var(--duration-spring) var(--ease-spring);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.rail[data-expanded] .panel {
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  width: auto;
+  transform-origin: 50% 100%;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+.accountName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.accountEmail {
+  margin-bottom: 0.875rem;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.logOut {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  transition: background-color var(--duration-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .logOut:hover {
+    background-color: var(--hover);
+  }
+}
+
+.logOut[aria-disabled='true'] {
+  cursor: progress;
+}
+
 /* Phones: a floating tab bar along the bottom edge. */
 @media (max-width: 759px) {
   .rail {
@@ -386,5 +485,19 @@
 
   .button[data-tip]::after {
     display: none;
+  }
+
+  .account {
+    flex: 1;
+  }
+
+  /* Above the bar, lined up with its right edge, where the button sits. */
+  .panel,
+  .rail[data-expanded] .panel {
+    right: 0;
+    bottom: calc(100% + 0.875rem);
+    left: auto;
+    width: min(18rem, calc(100vw - 1.5rem));
+    transform-origin: 100% 100%;
   }
 }

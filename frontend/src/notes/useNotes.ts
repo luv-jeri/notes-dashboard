@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { notesApi, type Note, type NoteInput } from '../api/notes'
+import { isSessionEnded } from '../auth/session'
 import { useToast } from '../toast/ToastContext'
 import { quoteTitle } from './text'
 
@@ -47,6 +48,8 @@ export function useCreateNote() {
     },
     onError: (error, input, context) => {
       if (context) setNotes(client, (notes) => notes.filter((note) => note.id !== context.tempId))
+      // The log-in screen takes over; a Try again button would only fail again.
+      if (isSessionEnded(error)) return
       toast.show({
         tone: 'error',
         message: `Couldn't add ${quoteTitle(input.title)}. ${error.message}`,
@@ -82,6 +85,7 @@ export function useUpdateNote() {
       if (previous) {
         setNotes(client, (notes) => notes.map((note) => (note.id === previous.id ? previous : note)))
       }
+      if (isSessionEnded(error)) return
       toast.show({
         tone: 'error',
         message: `Couldn't save changes to ${quoteTitle(previous?.title ?? variables.input.title)}. ${error.message}`,
@@ -118,10 +122,37 @@ export function useDeleteNote() {
             : notes.toSpliced(context.index, 0, removed),
         )
       }
+      if (isSessionEnded(error)) return
       toast.show({
         tone: 'error',
         message: `Couldn't delete ${removed ? quoteTitle(removed.title) : 'the note'}. ${error.message}`,
         action: { label: 'Try again', onAction: () => mutation.mutate(id) },
+      })
+    },
+    onSettled: () => refetchWhenIdle(client),
+  })
+
+  return mutation
+}
+
+/** Fills an empty account with the example notes, so every view has something to show. */
+export function useAddSampleNotes() {
+  const client = useQueryClient()
+  const toast = useToast()
+
+  const mutation = useMutation({
+    mutationKey: writeKey,
+    mutationFn: () => notesApi.addSamples(),
+    onSuccess: (notes) => {
+      client.setQueryData<Note[]>(notesKey, notes)
+      toast.show({ message: 'Added the sample notes. Delete any of them whenever you like.' })
+    },
+    onError: (error) => {
+      if (isSessionEnded(error)) return
+      toast.show({
+        tone: 'error',
+        message: `Couldn't add the sample notes. ${error.message}`,
+        action: { label: 'Try again', onAction: () => mutation.mutate() },
       })
     },
     onSettled: () => refetchWhenIdle(client),

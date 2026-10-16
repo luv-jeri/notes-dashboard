@@ -1,7 +1,9 @@
 import { ArrowDownUp, Plus, Search } from 'lucide-react'
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import type { User } from '../api/auth'
 import { toInput, type Note, type NoteInput } from '../api/notes'
+import { useLogout } from '../auth/session'
 import { useNow } from '../hooks/useNow'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { useStableCallback } from '../hooks/useStableCallback'
@@ -18,7 +20,7 @@ import { greeting, toDateKey } from './dates'
 import { NoteCard, type CardAction, type CardActionHandler } from './NoteCard'
 import { NoteFormDialog, type NoteDefaults } from './NoteFormDialog'
 import { NoteMap } from './NoteMap'
-import { NotesLoading, NotesMessage } from './NotesStates'
+import { NotesLoading, NotesMessage, NotesWelcome } from './NotesStates'
 import {
   countDue,
   selectSections,
@@ -28,7 +30,7 @@ import {
   type View,
 } from './selectNotes'
 import { formatCount, quoteTitle } from './text'
-import { useCreateNote, useDeleteNote, useNotesQuery, useUpdateNote } from './useNotes'
+import { useAddSampleNotes, useCreateNote, useDeleteNote, useNotesQuery, useUpdateNote } from './useNotes'
 import styles from './NotesDashboard.module.css'
 import gridStyles from './NotesStates.module.css'
 
@@ -53,15 +55,20 @@ const SORT_OPTIONS: readonly SelectOption<SortOrder>[] = [
   { value: 'title', label: 'A to Z' },
 ]
 
+/** "Good evening, Ada," reads better than the whole name. */
+const firstName = (name: string) => name.trim().split(/\s+/)[0]
+
 const cardItem = (id: number) => document.querySelector(`li[data-note-id="${id}"]`)
 const cardControl = (id: number, action: CardAction) =>
   document.querySelector<HTMLElement>(`li[data-note-id="${id}"] [data-action="${action}"]`)
 
-export function NotesDashboard() {
+export function NotesDashboard({ user }: { user: User }) {
   const notesQuery = useNotesQuery()
   const createNote = useCreateNote()
   const updateNote = useUpdateNote()
   const deleteNote = useDeleteNote()
+  const addSamples = useAddSampleNotes()
+  const logout = useLogout()
   const toast = useToast()
   const { theme, toggle: toggleTheme } = useTheme()
   const now = useNow()
@@ -251,6 +258,18 @@ export function NotesDashboard() {
     searchInput.current?.focus()
   }
 
+  // On success the log-in screen replaces this one, so only a failure needs words here.
+  function logOut() {
+    logout.mutate(undefined, {
+      onError: (error) =>
+        toast.show({
+          tone: 'error',
+          message: `Couldn't log out. ${error.message}`,
+          action: { label: 'Try again', onAction: logOut },
+        }),
+    })
+  }
+
   useShortcuts({
     n: () => {
       // The editor hands focus back to whatever had it. Pressed from nowhere
@@ -261,14 +280,15 @@ export function NotesDashboard() {
     '/': () => searchInput.current?.focus(),
   })
 
+  // The second line finishes "Good evening, Ada," so it starts in lower case.
   function headline(): string {
-    if (notesQuery.isPending) return 'Loading your notes'
-    if (!notes) return "Your notes didn't load"
+    if (notesQuery.isPending) return 'loading your notes'
+    if (!notes) return "your notes didn't load"
     if (dueToday > 0) return `${formatCount(dueToday)} ${dueToday === 1 ? 'note' : 'notes'} due today`
     if (overdue > 0) return `${formatCount(overdue)} overdue ${overdue === 1 ? 'note' : 'notes'}`
-    if (notes.length === 0) return 'Start your first note'
-    if (notes.some((note) => !note.done)) return 'Nothing due today'
-    return "Everything's done"
+    if (notes.length === 0) return 'start your first note'
+    if (notes.some((note) => !note.done)) return 'nothing due today'
+    return "everything's done"
   }
 
   function renderEmpty() {
@@ -360,16 +380,15 @@ export function NotesDashboard() {
 
     if (notes.length === 0) {
       return (
-        <NotesMessage
-          title="No notes yet"
-          detail="Write down a task, a list or an idea. Give it a due date to see it in Today."
-          actionLabel="New note"
-          onAction={() => {
+        <NotesWelcome
+          onNewNote={() => {
             // This button disappears once a note exists. Focusing the header
             // button first means the dialog hands focus back to one that stays.
             newNoteButton.current?.focus()
             openNewNote()
           }}
+          onAddSamples={() => addSamples.mutate()}
+          addingSamples={addSamples.isPending}
         />
       )
     }
@@ -428,12 +447,17 @@ export function NotesDashboard() {
           onToggleTheme={toggleTheme}
           expanded={railExpanded}
           onToggleExpanded={toggleRail}
+          user={user}
+          onLogOut={logOut}
+          loggingOut={logout.isPending}
         />
       </div>
 
       <main className={styles.main}>
         <h1 ref={headlineRef} className={styles.headline}>
-          <span className={styles.headlineLine}>{greeting(now)},</span>{' '}
+          <span className={styles.headlineLine}>
+            {greeting(now)}, {firstName(user.name)},
+          </span>{' '}
           <span className={styles.headlineLine}>{headline()}</span>
         </h1>
 
