@@ -91,9 +91,11 @@
   opacity: 1;
 }
 
+/* Grows into any spare room on its line, which is where a focused search
+   widens to; the buttons stay on the right. */
 .actions {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -105,10 +107,17 @@
   min-width: 0;
 }
 
+/*
+ * A set width, not a flex-basis: the actions are only as wide as their
+ * contents, and the browser measures those by width. With a basis the box
+ * followed its contents instead, and lost the "/" hint's width on focus.
+ */
 .search {
   position: relative;
   display: flex;
-  flex: 0 1 22rem;
+  flex: 1 1 auto;
+  width: 22rem;
+  max-width: 22rem;
   /* An input's natural width is ~20 characters; without this the bar can't shrink below it. */
   min-width: 0;
   align-items: center;
@@ -120,7 +129,7 @@
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--ink-muted);
   transition:
-    flex-basis var(--duration-slow) var(--ease-out),
+    max-width var(--duration-slow) var(--ease-out),
     box-shadow var(--duration-quick) var(--ease-out),
     color var(--duration-quick) var(--ease-out);
 }
@@ -131,9 +140,11 @@
   }
 }
 
-/* Typing gets more room: the box widens while it has focus. */
+/* Typing gets more room: the box widens while it has focus, but only into
+   empty space. Its width stays 22rem for line breaking, so focusing never
+   pushes the filters onto a new line. */
 .search:focus-within {
-  flex-basis: 28rem;
+  max-width: 28rem;
   color: var(--ink);
 }
 
@@ -359,8 +370,11 @@
     flex-basis: 100%;
   }
 
-  .search {
+  /* The box fills the row on phones, focused or not. */
+  .search,
+  .search:focus-within {
     flex: 1;
+    max-width: none;
   }
 
   .kbd {
