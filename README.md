@@ -5,6 +5,9 @@ in a small FastAPI backend, and every create, read, update and delete goes
 through its API. Beyond the brief, each note can have a category, a due date,
 a pin and a done tick, so the dashboard works as a light to-do list too.
 
+**Try it live: https://notes-dashboard-jade.vercel.app** (the demo notes
+reset after a quiet spell; see [Deploy](#deploy)).
+
 ![The dashboard in light mode](docs/screenshot.png)
 
 ## Run it
