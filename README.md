@@ -1,6 +1,6 @@
 # Notes Dashboard
 
-A React notes app for the Karbon Digital AI Engineering Assessment. Notes live
+Notes live
 in a small FastAPI backend, and every create, read, update and delete goes
 through its API. Beyond the brief, each note can have a category, a due date,
 a pin and a done tick, so the dashboard works as a light to-do list too.
