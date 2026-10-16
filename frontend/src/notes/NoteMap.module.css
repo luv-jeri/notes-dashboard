@@ -1,0 +1,157 @@
+/* Sticks beside the notes like the rail and panel do. Painted after the notes
+   column (z 3, later in the page), so its title label can reach over the
+   sticky toolbar. */
+.map {
+  position: sticky;
+  top: 1rem;
+  z-index: 3;
+  height: calc(100dvh - 2rem);
+}
+
+.track {
+  position: relative;
+  height: 100%;
+  padding: 0.5rem 0.25rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface);
+  cursor: pointer;
+  /* Dragging on a touch screen scrubs the map instead of scrolling the page. */
+  touch-action: none;
+  user-select: none;
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+
+.track[data-dragging] {
+  cursor: grabbing;
+}
+
+@media (hover: hover) {
+  .track:hover {
+    background-color: color-mix(in srgb, var(--surface) 88%, var(--ink));
+  }
+}
+
+/* No clipping: the scale already keeps every block inside, and the lens
+   is meant to reach a little past the blocks on both sides. */
+.canvas {
+  position: relative;
+  height: 100%;
+}
+
+.card {
+  --tint: var(--line);
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 3px;
+  background-color: var(--tint);
+  /* Re-sorting or filtering glides the blocks to their new places. */
+  transition:
+    translate var(--duration-slow) var(--ease-in-out),
+    width var(--duration-slow) var(--ease-in-out),
+    height var(--duration-slow) var(--ease-in-out),
+    background-color var(--duration-quick) var(--ease-out),
+    scale var(--duration-quick) var(--ease-out);
+  animation: card-in var(--duration-slow) var(--ease-out) both;
+}
+
+.card[data-category='work'] {
+  --tint: var(--lilac-strong);
+}
+
+.card[data-category='personal'] {
+  --tint: var(--rose-strong);
+}
+
+.card[data-category='ideas'] {
+  --tint: var(--peach-strong);
+}
+
+.card[data-category='shopping'] {
+  --tint: var(--mint-strong);
+}
+
+.card[data-category='health'] {
+  --tint: var(--sky-strong);
+}
+
+/* Done notes are outlines, as they're quieter on the page too. */
+.card[data-done] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--tint);
+}
+
+.card[data-hovered] {
+  background-color: var(--ink);
+  box-shadow: none;
+  scale: 1.15;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A short dash where each section after the first begins. */
+.section {
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 1.5px;
+  border-radius: 1px;
+  background-color: var(--ink-soft);
+  opacity: 0.5;
+  transition: translate var(--duration-slow) var(--ease-in-out);
+}
+
+/* What's on screen now. Moved by script on every scroll frame, so only its
+   fade is animated: a transition on its position would trail the page. */
+.lens {
+  position: absolute;
+  top: 0;
+  left: -0.125rem;
+  right: -0.125rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.map[data-empty] .lens {
+  display: none;
+}
+
+/* The hovered note's title, to the left of the map. */
+.label {
+  position: absolute;
+  right: calc(100% + 0.75rem);
+  max-width: 16rem;
+  margin: 0;
+  padding: 0.4375rem 0.75rem;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background-color: var(--ink);
+  color: var(--on-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  translate: 0 -50%;
+  box-shadow: var(--shadow-float);
+  /* Slides from one note's title to the next as the pointer moves. */
+  transition: top var(--duration-quick) var(--ease-out);
+  animation: label-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes label-in {
+  from {
+    opacity: 0;
+    translate: 0.375rem -50%;
+  }
+}

@@ -1,0 +1,381 @@
+.panel {
+  /* Above the scroll map (3), so the folded strip's tooltips, which open to
+     the left, cover it rather than slide under it. */
+  position: sticky;
+  top: 1rem;
+  z-index: 4;
+  max-height: calc(100dvh - 2rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background-color: var(--surface);
+  container-type: inline-size;
+  scrollbar-width: thin;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* The folded strip and its buttons only exist on wide screens (see the end). */
+.strip,
+.summaryHead .collapse {
+  display: none;
+}
+
+/* Below the notes on mid-size screens the panel is wide: lay its parts side by side. */
+@container (min-width: 44rem) {
+  .inner {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    align-items: start;
+  }
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.summaryHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.toggle {
+  flex-shrink: 0;
+  background-color: transparent;
+  color: var(--ink-soft);
+}
+
+@media (hover: hover) {
+  .toggle:hover {
+    background-color: var(--hover);
+    color: var(--ink);
+  }
+}
+
+.date {
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+}
+
+.progressNumber {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.track {
+  display: block;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background-color: var(--raised);
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--ink);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--raised);
+}
+
+.cardLabel,
+.sectionLabel {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.weekTotal {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bigNumber {
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.cheer {
+  padding: 0.3125rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--mint);
+  color: var(--on-pastel);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.dueSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dueList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dueCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--due-fill);
+  color: var(--on-pastel);
+  text-align: start;
+  transition:
+    translate var(--duration-spring) var(--ease-spring),
+    box-shadow var(--duration-base) var(--ease-out),
+    scale var(--duration-spring) var(--ease-spring);
+}
+
+.dueCard:active {
+  scale: 0.98;
+  transition-duration: 80ms;
+  transition-timing-function: var(--ease-out);
+}
+
+.dueCard:focus-visible {
+  outline-color: var(--ink);
+}
+
+@media (hover: hover) {
+  .dueCard:hover {
+    translate: -0.1875rem 0;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .dueCard:hover .dueTitle {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+.dueIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--pastel-chip);
+}
+
+.dueText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dueTitle {
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dueWhen {
+  color: var(--on-pastel-soft);
+  font-size: 0.8125rem;
+}
+
+/* A chip, not bare red text: red on a dimmed dark-mode pastel falls below 4.5:1. */
+.overdue {
+  align-self: flex-start;
+  margin-top: 0.125rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--pastel-danger-soft);
+  color: var(--pastel-danger);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 1199px) {
+  .panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/*
+ * Wide screens: the panel folds into a strip as tall as the rail. The grid
+ * column eases between the two widths (NotesDashboard.module.css). The open
+ * panel's content keeps its full width while the column grows, so it slides
+ * out like a drawer instead of squashing, and fades in as it goes.
+ */
+@media (min-width: 1200px) {
+  .inner {
+    min-width: 18.25rem;
+    transition:
+      opacity var(--duration-slow) var(--ease-out) 60ms,
+      translate var(--duration-slow) var(--ease-out) 60ms;
+  }
+
+  @starting-style {
+    .inner {
+      opacity: 0;
+      translate: 1.5rem 0;
+    }
+  }
+
+  .summaryHead .collapse {
+    display: inline-grid;
+    margin: -0.375rem -0.5rem 0 0;
+  }
+
+  .panel[data-collapsed] {
+    height: calc(100dvh - 2rem);
+    padding: 0.75rem 0;
+    /* Nothing inside overflows when folded; visible lets the strip's
+       tooltips reach out to the left. */
+    overflow: visible;
+    cursor: pointer;
+    transition: background-color var(--duration-quick) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .panel[data-collapsed]:hover {
+      background-color: color-mix(in srgb, var(--surface) 92%, var(--ink));
+    }
+  }
+
+  .panel[data-collapsed] .inner {
+    display: none;
+  }
+
+  .panel[data-collapsed] .strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    height: 100%;
+    animation: strip-in var(--duration-slow) var(--ease-out) 80ms both;
+  }
+}
+
+@keyframes strip-in {
+  from {
+    opacity: 0;
+    translate: -0.75rem 0;
+  }
+}
+
+.strip .toggle {
+  margin-bottom: 0.25rem;
+}
+
+.stripDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.stripWeekday {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.stripDate {
+  font-size: 1.625rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Starts at twelve o'clock. */
+.ring svg {
+  position: absolute;
+  inset: 0;
+  rotate: -90deg;
+}
+
+.ringTrack,
+.ringFill {
+  fill: none;
+  stroke-width: 4;
+}
+
+.ringTrack {
+  stroke: var(--raised);
+}
+
+.ringFill {
+  stroke: var(--ink);
+  stroke-linecap: round;
+  transition: stroke-dasharray var(--duration-slow) var(--ease-out);
+}
+
+.dueBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.375rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--raised);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.dueBadgeLate {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+}

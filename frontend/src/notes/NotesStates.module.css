@@ -1,0 +1,88 @@
+/* The card grid. Cards are never narrower than 16rem, so titles stay readable. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+/*
+ * The browser skips layout and paint for cards far off screen, so showing 48
+ * more costs about what the visible ones cost (a full relayout of 192 cards:
+ * 53ms down to 8ms on a 4x slowed CPU). Off-screen cards hold their last drawn
+ * size ("auto"); before that, a typical card's height, so the scrollbar barely
+ * moves as cards are first drawn.
+ * Skipping clips each card at its edge, so allow the focus ring and the
+ * widest tooltip ("Mark not done", 12px past the card) to paint over the gap.
+ */
+.grid > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 18rem;
+  /* Off-screen cards skip painting, which clips at the box. This margin
+     leaves room for a hovered card's lift and shadow (about 22px below). */
+  overflow-clip-margin: 1.5rem;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-height: 15rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface);
+  animation: breathe 1.4s ease-in-out infinite alternate;
+}
+
+.skeleton:nth-child(odd) {
+  animation-delay: 0.2s;
+}
+
+@keyframes breathe {
+  to {
+    opacity: 0.55;
+  }
+}
+
+.skeletonCircle {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--raised);
+}
+
+.skeletonLine {
+  width: 80%;
+  height: 1.125rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--raised);
+}
+
+.short {
+  width: 50%;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface);
+}
+
+.messageTitle {
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.messageDetail {
+  max-width: 40ch;
+  color: var(--ink-muted);
+}
+
+.message :global(.button) {
+  margin-top: 0.75rem;
+}

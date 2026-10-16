@@ -1,0 +1,390 @@
+.rail {
+  /* Sticky makes the rail its own layer, so its tooltips can rise no higher
+     than the rail does. Above the sticky toolbar (3) and the cards, so a
+     tooltip reaching into the notes column is never hidden. */
+  position: sticky;
+  top: 1rem;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  height: calc(100dvh - 2rem);
+  padding: 1.25rem 0;
+  border-radius: var(--radius-xl);
+  background-color: var(--surface);
+}
+
+/*
+ * Widened, the rows stretch and the names show. The circles stay at the same
+ * x as in the narrow rail (1rem in), so nothing jumps sideways. Tooltips are
+ * off, so clipping is safe: names stay inside while the column grows.
+ */
+.rail[data-expanded] {
+  align-items: stretch;
+  padding-inline: 1rem;
+  overflow-x: clip;
+}
+
+.rail[data-expanded] [data-tip]::after {
+  display: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Read by screen readers always; shown when the rail is wide. */
+.brand {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.rail[data-expanded] .brand {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  animation: name-in var(--duration-slow) var(--ease-out) 60ms both;
+}
+
+.viewsWrap {
+  position: relative;
+}
+
+/*
+ * Above the circles' fill (z 1), below their icons and names (z 2). It
+ * slides with the spring; widening the rail stretches it into a pill.
+ */
+.indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--ink);
+  pointer-events: none;
+  translate: 0 calc(var(--active) * 3.75rem);
+  transition:
+    translate var(--duration-spring) var(--ease-spring),
+    width var(--duration-slow) var(--ease-in-out);
+}
+
+.rail[data-expanded] .indicator {
+  width: 100%;
+}
+
+.views,
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.foot {
+  margin-top: auto;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink);
+  text-align: start;
+  transition: background-color var(--duration-quick) var(--ease-out);
+}
+
+.rail[data-expanded] .button {
+  width: 100%;
+  padding-right: 0.75rem;
+}
+
+.circle {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--raised);
+  transition:
+    background-color var(--duration-quick) var(--ease-out),
+    color var(--duration-quick) var(--ease-out),
+    scale var(--duration-spring) var(--ease-spring);
+}
+
+.circle > svg,
+.themeIcon {
+  position: relative;
+  z-index: 2;
+}
+
+/* Toggle and theme sit back: no fill until hovered. */
+.quiet .circle {
+  background-color: transparent;
+  color: var(--ink-soft);
+}
+
+@media (hover: hover) {
+  .button:hover .circle {
+    background-color: color-mix(in srgb, var(--raised) 82%, var(--ink));
+  }
+
+  .quiet:hover .circle {
+    background-color: var(--hover);
+    color: var(--ink);
+  }
+
+  .rail[data-expanded] .button:hover {
+    background-color: var(--hover);
+  }
+
+  .rail[data-expanded] .button:hover .circle {
+    background-color: var(--raised);
+  }
+
+  .rail[data-expanded] .quiet:hover .circle {
+    background-color: transparent;
+  }
+}
+
+/* Pressing sinks the circle; letting go springs it back. */
+.button:active .circle {
+  scale: 0.9;
+  transition-duration: 80ms;
+  transition-timing-function: var(--ease-out);
+}
+
+/* The indicator is under the current view's icon: turn the icon light as it
+   arrives. The short delay waits for the spring to get most of the way. */
+.button[aria-current='page'] {
+  color: var(--on-ink);
+}
+
+.button[aria-current='page'] .circle {
+  color: var(--on-ink);
+  transition-delay: 0ms, 70ms, 0ms;
+}
+
+@media (hover: hover) {
+  .rail[data-expanded] .button[aria-current='page']:hover {
+    background-color: transparent;
+  }
+}
+
+/* Something is due or overdue. The button's name says how many. */
+.dot {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid var(--raised);
+  border-radius: 50%;
+  background-color: var(--danger);
+  transition: border-color var(--duration-quick) var(--ease-out) 70ms;
+}
+
+.button[aria-current='page'] .dot {
+  border-color: var(--ink);
+}
+
+/* Names show when the rail is wide (and always in the phone tab bar). */
+.label,
+.badge {
+  display: none;
+}
+
+.short {
+  display: none;
+}
+
+.rail[data-expanded] .label {
+  position: relative;
+  z-index: 2;
+  display: block;
+  flex: 1;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: name-in var(--duration-slow) var(--ease-out) 60ms both;
+}
+
+.rail[data-expanded] .badge {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 700;
+  animation: name-in var(--duration-slow) var(--ease-out) 60ms both;
+}
+
+@keyframes name-in {
+  from {
+    opacity: 0;
+    translate: -0.375rem 0;
+  }
+}
+
+/* After a switch, the new icon turns in from the side and settles. */
+.themeIcon {
+  display: grid;
+}
+
+.themeIcon[data-spin] {
+  animation: spin-in var(--duration-spring) var(--ease-spring);
+}
+
+@keyframes spin-in {
+  from {
+    opacity: 0;
+    rotate: -90deg;
+    scale: 0.5;
+  }
+}
+
+/* Phones: a floating tab bar along the bottom edge. */
+@media (max-width: 759px) {
+  .rail {
+    position: fixed;
+    top: auto;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    left: 0.75rem;
+    z-index: 20;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 0;
+    height: auto;
+    padding: 0.375rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float);
+  }
+
+  .head,
+  .indicator {
+    display: none;
+  }
+
+  /* Two classes, so it outweighs .button's display (one class) wherever
+     either rule sits. The bar has no width to fold. */
+  .rail .toggle {
+    display: none;
+  }
+
+  .viewsWrap,
+  .views,
+  .foot {
+    display: contents;
+  }
+
+  .views > li {
+    display: flex;
+    flex: 1;
+  }
+
+  .button,
+  .rail[data-expanded] .button {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    width: auto;
+    padding: 0.375rem 0 0.25rem;
+    border-radius: var(--radius-md);
+    color: var(--ink);
+  }
+
+  .circle,
+  .quiet .circle {
+    width: 2.75rem;
+    height: 2rem;
+    border-radius: var(--radius-pill);
+    background-color: transparent;
+    color: var(--ink);
+  }
+
+  @media (hover: hover) {
+    .button:hover .circle,
+    .quiet:hover .circle {
+      background-color: var(--hover);
+    }
+  }
+
+  /* No sliding indicator here: the current tab's pill fills in place, and its
+     name stays dark on the bar. */
+  .button[aria-current='page'] {
+    color: var(--ink);
+  }
+
+  .button[aria-current='page'] .circle {
+    background-color: var(--ink);
+    color: var(--on-ink);
+  }
+
+  .label,
+  .rail[data-expanded] .label {
+    display: block;
+    flex: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: none;
+  }
+
+  .rail[data-expanded] .badge,
+  .long {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+
+  .dot {
+    top: 0.125rem;
+    right: 0.5rem;
+    border-color: var(--surface);
+  }
+
+  .button[data-tip]::after {
+    display: none;
+  }
+}

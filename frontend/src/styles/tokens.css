@@ -1,0 +1,98 @@
+/*
+ * Design tokens. See docs/design-system.md for what each one is for.
+ * Components use these variables only, never raw colours.
+ *
+ * The theme hook (src/theme/useTheme.ts) and the inline script in index.html
+ * always set data-theme on <html>, so dark mode needs one block, not a second
+ * copy inside a prefers-color-scheme media query.
+ */
+:root {
+  color-scheme: light;
+
+  --bg: #fbf8f5;
+  --surface: #f2ede8;
+  --raised: #ffffff;
+  --ink: #18171c;
+  --ink-soft: #4a474f;
+  --ink-muted: #6b6670;
+  --on-ink: #ffffff;
+  --line: #e6e0da;
+  --danger: #b42318;
+  --danger-soft: #fde4e1;
+  --hover: rgb(24 23 28 / 0.06);
+
+  /* Category pastels. Card text stays dark on them in both themes. */
+  --lilac: #dcd7f7;
+  --rose: #f4cdd0;
+  --peach: #f8dfc4;
+  --mint: #c9eedb;
+  --sky: #cfe3f6;
+  --lilac-strong: #b3a9ee;
+  --rose-strong: #eba4aa;
+  --peach-strong: #f2bf8a;
+  --mint-strong: #8fdab4;
+  --sky-strong: #9cc5ec;
+  --on-pastel: #18171c;
+  --on-pastel-soft: #45424a;
+  --pastel-chip: rgb(255 255 255 / 0.72);
+  --pastel-danger: #b42318;
+  --pastel-danger-soft: #fde4e1;
+
+  --font: 'DM Sans Variable', 'DM Sans', system-ui, sans-serif;
+
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-pill: 999px;
+
+  --shadow-float: 0 24px 64px -24px rgb(24 23 28 / 0.35), 0 2px 8px rgb(24 23 28 / 0.06);
+  --shadow-lift: 0 12px 24px -14px rgb(24 23 28 / 0.4);
+
+  /*
+   * Motion. Things arriving or answering a touch ease out (fast start, soft
+   * landing); things leaving ease in (they speed away); things moving from
+   * one place to another ease in and out. The spring overshoots by 5% and
+   * settles, for presses and toggles that should feel physical.
+   */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: linear(
+    0, 0.154 6.3%, 0.445 12.5%, 0.714 18.8%, 0.903 25%, 1.007 31.3%, 1.048 37.5%,
+    1.052 43.8%, 1.032 53.1%, 1.011 62.5%, 1 72%, 0.997 84%, 1
+  );
+  --duration-quick: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-spring: 520ms;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #141317;
+  --surface: #1d1c21;
+  --raised: #29282e;
+  --ink: #f3f0ec;
+  --ink-soft: #c9c4cc;
+  --ink-muted: #9c97a0;
+  --on-ink: #18171c;
+  --line: #34333a;
+  --danger: #ff8a80;
+  --danger-soft: #3a2224;
+  --hover: rgb(243 240 236 / 0.07);
+
+  --lilac: #c9c3ee;
+  --rose: #e8bcc0;
+  --peach: #ecd0b1;
+  --mint: #b5e2cb;
+  --sky: #bcd5ec;
+  --lilac-strong: #a79ce8;
+  --rose-strong: #e0959c;
+  --peach-strong: #e6b27c;
+  --mint-strong: #80cfa6;
+  --sky-strong: #8db8e2;
+
+  --shadow-float: 0 24px 64px -16px rgb(0 0 0 / 0.6);
+  --shadow-lift: 0 12px 24px -12px rgb(0 0 0 / 0.65);
+}

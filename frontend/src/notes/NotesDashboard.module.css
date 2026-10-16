@@ -1,0 +1,387 @@
+/*
+ * Wide screens: rail | notes | scroll map | panel, edge to edge with no
+ * maximum width. The rail and panel widths are variables: folding either one
+ * changes one number, and the grid eases the columns to their new widths.
+ */
+.app {
+  --rail-width: 5rem;
+  --map-width: 2.5rem;
+  --panel-width: 21.25rem;
+
+  display: grid;
+  grid-template-areas: 'rail main map panel';
+  grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--map-width) var(--panel-width);
+  align-items: start;
+  gap: 1.5rem 1.25rem;
+  padding: 1rem;
+  transition: grid-template-columns var(--duration-slow) var(--ease-in-out);
+}
+
+.app[data-rail='expanded'] {
+  --rail-width: 13.5rem;
+}
+
+.app[data-panel='collapsed'] {
+  --panel-width: 4.5rem;
+}
+
+/* The slots stretch to the full row height, so what's inside them can stick. */
+.railSlot {
+  grid-area: rail;
+  align-self: stretch;
+}
+
+.main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  padding-top: 0.25rem;
+}
+
+.mapSlot {
+  grid-area: map;
+  align-self: stretch;
+}
+
+.panelSlot {
+  grid-area: panel;
+  align-self: stretch;
+}
+
+/*
+ * Search, sort, New note and the category filters stay pinned to the top
+ * while the notes scroll under them. The negative margin cancels the top
+ * padding, so the bar sits where it would anyway until it sticks. Its
+ * background reaches a little past the column so focus rings scrolling under
+ * it are covered too.
+ *
+ * Laid out right to left and wrapping: when everything fits on one line, the
+ * filters sit on the left and the actions on the right; when not, the
+ * actions take the top line (in their usual top-right spot) and the filters
+ * the line below.
+ */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-flow: row-reverse wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin: -1rem -0.625rem 0;
+  padding: 1rem 0.625rem 0.75rem;
+  background-color: var(--bg);
+}
+
+/* Once the bar is stuck, notes fade out as they pass under it instead of being cut off. */
+.toolbar::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 1.5rem;
+  background: linear-gradient(var(--bg), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.toolbar[data-stuck]::after {
+  opacity: 1;
+}
+
+.actions {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.filters {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  flex: 0 1 22rem;
+  /* An input's natural width is ~20 characters; without this the bar can't shrink below it. */
+  min-width: 0;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2.75rem;
+  padding: 0 0.625rem 0 1rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-muted);
+  transition:
+    flex-basis var(--duration-slow) var(--ease-out),
+    box-shadow var(--duration-quick) var(--ease-out),
+    color var(--duration-quick) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .search:hover {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 50%, var(--ink-muted));
+  }
+}
+
+/* Typing gets more room: the box widens while it has focus. */
+.search:focus-within {
+  flex-basis: 28rem;
+  color: var(--ink);
+}
+
+.search:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+}
+
+.search input:focus-visible {
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
+
+/* The browser's clear button is blue by default: redraw it as an ink cross. */
+.search input::-webkit-search-cancel-button {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  appearance: none;
+  background-color: var(--ink-muted);
+  cursor: pointer;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E")
+    center / 1rem no-repeat;
+}
+
+/* Chrome keeps the hidden button's space while the box is empty, which cut
+   the placeholder short on phones. Gone until there's something to clear. */
+.search input:placeholder-shown::-webkit-search-cancel-button {
+  display: none;
+}
+
+@media (hover: hover) {
+  .search input::-webkit-search-cancel-button:hover {
+    background-color: var(--ink);
+  }
+}
+
+.search:has(input:focus) .kbd {
+  display: none;
+}
+
+.kbd {
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 6px;
+  background-color: var(--surface);
+  color: var(--ink-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* The plus turns a quarter on hover, springing, as if winding up to add. */
+.newNoteIcon {
+  flex-shrink: 0;
+  transition: rotate var(--duration-spring) var(--ease-spring);
+}
+
+@media (hover: hover) {
+  .newNote:hover .newNoteIcon {
+    rotate: 90deg;
+  }
+}
+
+/*
+ * When Tab or the scroll map brings a note into view, it stops clear of the
+ * sticky toolbar (useStickyBar keeps --toolbar-height up to date), and on
+ * phones clear of the tab bar. Set on the notes only: scroll-padding on the
+ * page would count the toolbar's own controls as covered, and focusing
+ * search would jump the page to the top.
+ */
+.notesArea :is(li, button, a, input, textarea, [tabindex]) {
+  scroll-margin-top: calc(var(--toolbar-height, 0px) + 0.75rem);
+}
+
+@media (max-width: 759px) {
+  .notesArea :is(li, button, a, input, textarea, [tabindex]) {
+    scroll-margin-bottom: calc(6.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* The big type is the page's one loud element, and it always says something true.
+   It scrolls away; the toolbar below it stays. */
+.headline {
+  max-width: 20ch;
+  font-size: clamp(2.25rem, 2.5vw + 1.5rem, 3.5rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.headlineLine {
+  display: block;
+}
+
+.stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--danger-soft);
+  color: var(--ink);
+  font-size: 0.9375rem;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.5rem;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.625rem;
+  height: 1.625rem;
+  padding: 0 0.4375rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  padding-top: 0.25rem;
+}
+
+.moreCount {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+/* Mid-size screens: the panel moves under the notes; the map stays beside them. */
+@media (max-width: 1199px) {
+  .app {
+    grid-template-areas:
+      'rail main map'
+      'rail panel panel';
+    grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--map-width);
+  }
+}
+
+/* Phones: one column. The rail turns into a fixed tab bar, so leave room for it. */
+@media (max-width: 759px) {
+  .app {
+    grid-template-areas:
+      'main'
+      'panel';
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1rem 1rem calc(6.75rem + env(safe-area-inset-bottom));
+  }
+
+  .railSlot {
+    display: contents;
+  }
+
+  /* Scrolling with a thumb is the phone's own scroll map. */
+  .mapSlot {
+    display: none;
+  }
+
+  .main {
+    gap: 1rem;
+  }
+
+  /* Edge to edge, so the sideways-scrolling filters reach both sides of the screen. */
+  .toolbar {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+  }
+
+  .actions,
+  .filters {
+    flex-basis: 100%;
+  }
+
+  .search {
+    flex: 1;
+  }
+
+  .kbd {
+    display: none;
+  }
+}
+
+/* The smallest phones: the button keeps its words for screen readers, shows the plus. */
+@media (max-width: 359px) {
+  .newNote {
+    flex-shrink: 0;
+    width: 2.75rem;
+    padding: 0;
+  }
+
+  .newNoteLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
