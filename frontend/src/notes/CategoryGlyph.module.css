@@ -1,0 +1,7 @@
+/* Sized like the icons it stands in for, so a row of circles lines up. */
+.monogram {
+  display: block;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0;
+}

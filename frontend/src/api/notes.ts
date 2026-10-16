@@ -1,7 +1,10 @@
 import { request } from './client'
 
+/** The five categories every account has. */
 export const CATEGORIES = ['work', 'personal', 'ideas', 'shopping', 'health'] as const
-export type Category = (typeof CATEGORIES)[number]
+export type BuiltInCategory = (typeof CATEGORIES)[number]
+/** A built-in key, or the key of one of the person's own categories ("c12"). */
+export type Category = string
 
 /** Same limits as backend/main.py, which refuses anything longer. */
 export const TITLE_MAX = 200

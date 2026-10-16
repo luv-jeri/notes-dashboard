@@ -69,8 +69,26 @@
   }
 }
 
-.pill:first-child .icon {
+.allIcon {
+  background-color: var(--raised);
   color: var(--ink);
+}
+
+/* Edit categories opens a dialog rather than filtering, so it's an outline, not a fill. */
+.edit {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.edit .icon {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+@media (hover: hover) {
+  .edit:hover {
+    background-color: var(--hover);
+  }
 }
 
 /* Phones: one row that scrolls sideways instead of wrapping into a wall of pills. */

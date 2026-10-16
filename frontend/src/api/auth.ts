@@ -10,6 +10,8 @@ export interface User {
   id: number
   name: string
   email: string
+  /** False until they open the link in the confirmation email. */
+  email_verified: boolean
 }
 
 export interface SignupInput {
@@ -20,6 +22,12 @@ export interface SignupInput {
 
 export interface LoginInput {
   email: string
+  password: string
+}
+
+export interface ResetPasswordInput {
+  /** From the link in the reset email. */
+  token: string
   password: string
 }
 
@@ -39,4 +47,19 @@ export const authApi = {
     request<User>('/auth/login', { method: 'POST', body: JSON.stringify(input) }),
 
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
+
+  /** Confirms the address the token was sent to. Works without a session. */
+  verifyEmail: (token: string) =>
+    request<void>('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) }),
+
+  /** Emails the logged-in person a new confirmation link. */
+  resendVerification: () => request<void>('/auth/verify-email/resend', { method: 'POST' }),
+
+  /** Always answers the same way, so it never shows whether an email has an account. */
+  forgotPassword: (email: string) =>
+    request<void>('/auth/password/forgot', { method: 'POST', body: JSON.stringify({ email }) }),
+
+  /** Sets the new password and logs in as that account. */
+  resetPassword: (input: ResetPasswordInput) =>
+    request<User>('/auth/password/reset', { method: 'POST', body: JSON.stringify(input) }),
 }

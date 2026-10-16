@@ -75,7 +75,9 @@ const relativeFormat = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' 
 export function formatAgo(iso: string, now = new Date()): string {
   const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000)
   const elapsed = Math.abs(seconds)
-  if (elapsed < 45) return 'just now'
+  // Everything shown here has already happened. A time ahead of `now` means a
+  // note saved since the once-a-minute clock last ticked, not "in 1 minute".
+  if (seconds > 0 || elapsed < 45) return 'just now'
   if (elapsed < 3600) return relativeFormat.format(Math.round(seconds / 60), 'minute')
   if (elapsed < 86_400) return relativeFormat.format(Math.round(seconds / 3600), 'hour')
   if (elapsed < 7 * 86_400) return relativeFormat.format(Math.round(seconds / 86_400), 'day')

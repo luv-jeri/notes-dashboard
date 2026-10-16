@@ -30,5 +30,7 @@ describe('dates', () => {
 
     expect(formatAgo('2026-10-16T11:59:30Z', now)).toBe('just now')
     expect(formatAgo('2026-10-16T11:55:00Z', now)).toBe('5 minutes ago')
+    // Saved after the minute clock last ticked.
+    expect(formatAgo('2026-10-16T12:00:50Z', now)).toBe('just now')
   })
 })

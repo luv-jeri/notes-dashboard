@@ -28,8 +28,9 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
   }
 
   if (!response.ok) throw new ApiError(response.status, await readErrorMessage(response))
-  if (response.status === 204) return undefined as T
-  return (await response.json()) as T
+  // 204 and 202 (an email on its way) come back without a body.
+  const text = await response.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
 async function readErrorMessage(response: Response): Promise<string> {

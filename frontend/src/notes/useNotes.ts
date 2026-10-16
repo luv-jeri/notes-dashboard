@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { notesApi, type Note, type NoteInput } from '../api/notes'
-import { isSessionEnded } from '../auth/session'
+import { isSessionEnded, useAccountMutation } from '../auth/session'
 import { useToast } from '../toast/ToastContext'
 import { quoteTitle } from './text'
 
@@ -25,7 +25,7 @@ export function useCreateNote() {
   const client = useQueryClient()
   const toast = useToast()
 
-  const mutation = useMutation({
+  const mutation = useAccountMutation({
     mutationKey: writeKey,
     mutationFn: (input: NoteInput) => notesApi.create(input),
     onMutate: async (input) => {
@@ -66,7 +66,7 @@ export function useUpdateNote() {
   const client = useQueryClient()
   const toast = useToast()
 
-  const mutation = useMutation({
+  const mutation = useAccountMutation({
     mutationKey: writeKey,
     mutationFn: ({ id, input }: { id: number; input: NoteInput }) => notesApi.update(id, input),
     onMutate: async ({ id, input }) => {
@@ -102,7 +102,7 @@ export function useDeleteNote() {
   const client = useQueryClient()
   const toast = useToast()
 
-  const mutation = useMutation({
+  const mutation = useAccountMutation({
     mutationKey: writeKey,
     mutationFn: (id: number) => notesApi.remove(id),
     onMutate: async (id) => {
@@ -140,7 +140,7 @@ export function useAddSampleNotes() {
   const client = useQueryClient()
   const toast = useToast()
 
-  const mutation = useMutation({
+  const mutation = useAccountMutation({
     mutationKey: writeKey,
     mutationFn: () => notesApi.addSamples(),
     onSuccess: (notes) => {

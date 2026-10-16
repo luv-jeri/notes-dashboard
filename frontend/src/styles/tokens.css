@@ -21,17 +21,27 @@
   --danger-soft: #fde4e1;
   --hover: rgb(24 23 28 / 0.06);
 
-  /* Category pastels. Card text stays dark on them in both themes. */
+  /*
+   * Category pastels. Card text stays dark on them in both themes. The first
+   * five belong to the built-in categories; a person's own categories pick
+   * from all eight.
+   */
   --lilac: #dcd7f7;
   --rose: #f4cdd0;
   --peach: #f8dfc4;
   --mint: #c9eedb;
   --sky: #cfe3f6;
+  --butter: #f3e8b0;
+  --sage: #dbe6c6;
+  --stone: #e4ddd3;
   --lilac-strong: #b3a9ee;
   --rose-strong: #eba4aa;
   --peach-strong: #f2bf8a;
   --mint-strong: #8fdab4;
   --sky-strong: #9cc5ec;
+  --butter-strong: #e6cf6a;
+  --sage-strong: #b4cc8e;
+  --stone-strong: #c6baa9;
   --on-pastel: #18171c;
   --on-pastel-soft: #45424a;
   --pastel-chip: rgb(255 255 255 / 0.72);
@@ -87,11 +97,17 @@
   --peach: #ecd0b1;
   --mint: #b5e2cb;
   --sky: #bcd5ec;
+  --butter: #e7dba0;
+  --sage: #cad8b4;
+  --stone: #d6cdc1;
   --lilac-strong: #a79ce8;
   --rose-strong: #e0959c;
   --peach-strong: #e6b27c;
   --mint-strong: #80cfa6;
   --sky-strong: #8db8e2;
+  --butter-strong: #dac25c;
+  --sage-strong: #a7bf80;
+  --stone-strong: #baad9b;
 
   --shadow-float: 0 24px 64px -16px rgb(0 0 0 / 0.6);
   --shadow-lift: 0 12px 24px -12px rgb(0 0 0 / 0.65);
